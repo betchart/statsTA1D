@@ -1,2 +1,2 @@
-genNameX = 'genTopTanhDeltaAbsY'
-genNameY = 'genTopDPtDPhi'
+genNameX = 'genTopTanhDeltaAbsY' # XL
+genNameY = 'genTopDPtDPhi'       # XT
