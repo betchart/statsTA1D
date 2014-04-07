@@ -1,2 +1,4 @@
-genNameX = 'genTopTanhDeltaAbsY' # XL
-genNameY = 'genTopDPtDPhi'       # XT
+genNameX = 'genTopTanhDeltaAbsY'
+genNameY = 'genTopDPtDPhi'
+
+genNames = {'XL':genNameX, 'XT':genNameY}
