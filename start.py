@@ -73,7 +73,7 @@ if __name__ == '__main__':
         for part in partitions:
             for tID in ([None] if templates[0]==templates[1] else 
                         range(channel_data.nTemplates)[slice(*templates)]):
-                mp = systematics.measurement_pars(partition=part)
+                mp = systematics.measurement_pars(partition=part, var = 'XL' if options.XL else 'XT')
                 mp.update({'doVis':options.visualize,
                            'evalSystematics':systs if tID == None else [],
                            'ensembles':ensembles if tID == None else [],
