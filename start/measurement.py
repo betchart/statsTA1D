@@ -28,20 +28,20 @@ class measurement(object):
 
         with open(self.outNameBase + '.log', 'w') as log:
             pars = systematics.central()
+            pars['log'] = log
             if templateID!=None: pars['label'] = 'T%03d'%templateID
-            self.central = fit(signal=signal, R0_=R0_, log=log,
-                               templateID=templateID, **pars)
+            self.central = fit(signal=signal, R0_=R0_, templateID=templateID, **pars)
             self.central.model.print_n(log)
             self.central.ttreeWrite(self.outNameBase+'.root')
 
-        defaults = dict([(v,self.central.model.w.arg(v).getVal()) 
-                         for v in ['alpha', 'd_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']])
+        defaults = dict([(v,self.central.model.w.arg(v).getVal()) for v in 
+                         ['alpha', 'd_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']])
 
         if doVis: self.central.model.visualize2D(printName=self.outNameBase+'.pdf')
 
         if ensembles: 
             pars = systematics.central()
-            pars.update({'signal':signal, 'profileVars':profile, 'R0_':R0_, 'log':log})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log})
             for ensPars in ensemble_specs():
                 if ensPars['label'] not in ensembles: continue
                 ensPars.update({'ensSlice':ensSlice})
@@ -49,7 +49,7 @@ class measurement(object):
 
         if calibrations:
             pars = systematics.central()
-            pars.update({'signal':signal, 'profileVars':profile, 'R0_':R0_, 'log':log})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log})
             for calPars in calibration_specs():
                 if calPars['which'] not in calibrations: continue
                 calPars.update({'calSlice':calSlice})
@@ -61,7 +61,7 @@ class measurement(object):
             pars.update(sys)
             fname = self.outNameBase +'_sys_'+ sys['label'] + '.log'
             with open(fname, 'w') as log:
-                f = fit(signal=signal, profileVars=profile, R0_=R0_,
+                f = fit(signal=signal, R0_=R0_,
                         quiet=False, defaults=defaults, log=log, **pars)
                 f.ttreeWrite(fname.replace('.log','.root'))
 
@@ -88,6 +88,7 @@ class measurement(object):
         for i in range(Nens)[slice(*ensSlice)]:
             alt = mcstudy.genData(i)
             pars['label'] = '%s_ens%03d'%(label,i)
+            pars['quiet'] = True
             with open(self.outNameBase + pars['label'] + '.log', 'w') as log:
                 pars['log']=log
                 f = fit(altData=alt, **pars)
@@ -142,6 +143,7 @@ class measurement(object):
         for i in range(N)[slice(*calSlice)]:
             alt = mcstudy.genData(i)
             pars['label'] = '%s_cal%s%03d'%(label,which,i)
+            pars['quiet'] = True
             with open(self.outNameBase + pars['label'] + '.log', 'w') as log:
                 pars['log']=log
                 f = fit(altData=alt, **pars)
