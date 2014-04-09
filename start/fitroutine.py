@@ -84,7 +84,7 @@ class fit(object):
         parb = parabola([(points[i],pllPoints[i]) for i in (10,)+iBounds])
 
         self.profVal = float(parb.xmin)
-        self.profErr = parb.dx(1)
+        self.profErr = parb.dx(0.5)
         self.scale = w.arg('Ac_tt').getVal()
         self.fit = self.profVal * self.scale
         self.sigma = self.profErr * self.scale
@@ -104,7 +104,7 @@ class fit(object):
             for i,(p,v) in enumerate(zip(points,pllPoints)):
                 print>>self.log, i, p, v
             print>>self.log, parb
-            print>>self.log, 'parb alpha:', parb.xmin, '+/-', parb.dx(1)
+            print>>self.log, 'parb alpha:', parb.xmin, '+/-', parb.dx(0.5)
         return
 
     @roo.quiet
