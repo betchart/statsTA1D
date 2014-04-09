@@ -5,40 +5,37 @@ import ROOT as r
 from lib import roo
 import inputs
 import model
-from lib.enclosing_ellipse import enclosing_ellipse
+from lib.parabola import parabola
 from asymmNames import genNameX,genNameY
 
-oneSigmaNLL = 1.14
 
 class fit(object):
-    def __init__(self, label, signal, profileVars, R0_,
+    def __init__(self, label, signal, R0_,
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
-                 quiet = False, hackZeroBins=False, templateID=None, defaults = {},
-                 log=None, fixSM=False,altData=None, lumiFactor=1.0):
+                 quiet = False, templateID=None, defaults = {},
+                 log=None, fixSM=False, altData=None, lumiFactor=1.0):
 
         np.random.seed(1981)
-        for item in ['label','quiet','fixSM','profileVars'] : setattr(self,item,eval(item))
+        for item in ['label','quiet','fixSM'] : setattr(self,item,eval(item))
         self.log = log if log else sys.stdout
         if type(R0_) == tuple:
             diffR0_ = R0_[1]
             R0_ = R0_[0]
         else: diffR0_ = None
         prePre = dirIncrement in [0,4,5]
-        extra = True
         channels = dict([((lep,part),
                           inputs.channel_data(lep, part, tag, signal, sigPre,
                                               "R%02d" % (R0_ + dirIncrement),
-                                              genDirPre, prePre=prePre, templateID=templateID, extra=extra,
-                                              d_wbb = d_wbb,
-                                              hackZeroBins=hackZeroBins and 'QCD'==part))
+                                              genDirPre, prePre=prePre, templateID=templateID,
+                                              d_wbb = d_wbb))
                          for lep in ['el', 'mu']
                          for part in ['top', 'QCD']
                          ])
         channels['gen'] = inputs.channel_data('mu', 'top', tag,
                                               '%s; %s'%(genNameX,genNameY),
-                                              sigPrefix = sigPre if dirIncrement in [0,4,5] else '', extra=extra,
+                                              sigPrefix = sigPre if dirIncrement in [0,4,5] else '',
                                               dirPrefix=genDirPre, genDirPre=genDirPre, 
-                                              getTT=True, prePre = prePre)
+                                              prePre = prePre, sampleList=['tt'], rename=False)
 
         if diffR0_ :
             for lepPart,chan in channels.items():
@@ -50,7 +47,7 @@ class fit(object):
 
         print "###", label
         print>>self.log, "###", label
-        self.model = model.topModel(channels, asymmetry=True)
+        self.model = model.topModel(channels)
         self.model.w.arg('lumi_factor').setVal(lumiFactor)
         for k,v in defaults.items(): self.model.w.arg(k).setVal(v)
         for item in ['d_lumi', 'd_xs_dy', 'd_xs_st']: self.model.w.arg(item).setVal(eval(item))
@@ -64,8 +61,7 @@ class fit(object):
 
     @roo.quiet
     def doSM(self):
-        fixVars = ['R_ag','slosh','falphaL','falphaT']
-        for item in fixVars: self.model.w.arg(item).setConstant()
+        self.model.w.arg('alpha').setConstant()
         nll = self.model.w.pdf('model').createNLL(self.model.w.data('data'), *self.fitArgs[:-1])
         minu = r.RooMinuit(nll)
         minu.setPrintLevel(-1)
@@ -76,42 +72,39 @@ class fit(object):
     @roo.quiet
     def doFit(self):
         w = self.model.w
-        contourPoints=None
-        while not contourPoints:
-            pll = self.minimize()
-            p0, contourPoints = self.contourPoints(pll)
+        (alpha,alphaE), pll = self.minimize()
 
-        ell = enclosing_ellipse([p[:2] for p in contourPoints],p0[:2])
-        self.profVal = p0[:2]
-        self.profErr = ell.sigmas2
-        self.profPLL = p0[2]
+        def pllEval(p):
+            w.arg('alpha').setVal(p)
+            return pll.getVal()
+        step = 0.2 * alphaE
+        points = [alpha+i*step for i in range(-10,11)]
+        pllPoints = [pllEval(p) for p in points]
+        iBounds = zip(*sorted((abs(1-v),i) for i,v in enumerate(pllPoints))[:2])[1]
+        parb = parabola([(points[i],pllPoints[i]) for i in (10,)+iBounds])
 
-        self.scales = np.array([w.arg(a).getVal() for a in ['Ac_y_ttqq', 'Ac_y_ttqg']])
-        self.scalesPhi= [w.arg('Ac_phi_%s'%n).getVal() for n in ['ttqq','ttgg','ttag','ttqg','tt']]
-        self.correction = w.arg('Ac_y_ttgg').getVal() * w.arg('f_gg').getVal()
-        self.fractionHats = [w.arg('f_%s_hat' % a).getVal() for a in ['gg','qg','qq','ag']]
-        fitXY = self.profVal*self.scales
-        sigmas2 = np.diag(self.scales).dot(self.profErr).dot(np.diag(self.scales))
-        self.fitX,self.fitY = [float(i) for i in fitXY]
-        self.fitXX = float(sigmas2[0,0])
-        self.fitXY = float(sigmas2[0,1])
-        self.fitYY = float(sigmas2[1,1])
-        self.sigmaX = math.sqrt( self.fitXX / (2*oneSigmaNLL))
-        self.sigmaY = math.sqrt( self.fitYY / (2*oneSigmaNLL))
-        self.contourPointsX,self.contourPointsY, = zip(*[[float(i) for i in self.scales*p] for p in contourPoints])
+        self.profVal = float(parb.xmin)
+        self.profErr = parb.dx(1)
+        self.scale = w.arg('Ac_tt').getVal()
+        self.fit = self.profVal * self.scale
+        self.sigma = self.profErr * self.scale
+
+        self.profPLL = pllEval(self.profVal)
+        self.pll = pll
 
         if not self.quiet:
             print>>self.log, self.profVal, self.profPLL
             print>>self.log, self.profErr
-            for item in ['d_qq','d_xs_tt','d_xs_wj',
-                         'factor_elqcd','factor_muqcd',
-                         'f_gg','f_qq','f_qg','f_ag',
-                         'R_ag','slosh','alphaL','alphaT']:
+            for item in ['alpha','d_xs_tt','d_xs_wj',
+                         'factor_elqcd','factor_muqcd']:
                 print>>self.log, '\t', roo.str(w.arg(item))
-        self.pll = pll
-        w.arg('falphaL').setVal(p0[0])
-        w.arg('falphaT').setVal(p0[1])
-        pll.getVal()
+            print>>self.log, 'fit alpha:', alpha, '+/-', alphaE
+            print>>self.log, 'iBounds', iBounds
+            print>>self.log
+            for i,(p,v) in enumerate(zip(points,pllPoints)):
+                print>>self.log, i, p, v
+            print>>self.log, parb
+            print>>self.log, 'parb alpha:', parb.xmin, '+/-', parb.dx(1)
         return
 
     @roo.quiet
@@ -132,104 +125,23 @@ class fit(object):
             minu.setStrategy(1)
             minu.migrad()
         print>>self.log
+        print>>self.log, roo.str(w.arg('alpha'))
         self.NLL = nll.getVal()
-        pll = nll.createProfile(w.argSet(','.join(self.profileVars)))
+        alpha = w.arg('alpha').getVal(), w.arg('alpha').getError()
+        pll = nll.createProfile(w.argSet('alpha'))
         print>>self.log, roo.str(nll)
         print>>self.log, roo.str(pll)
         if hasattr(pll,'minimizer'):
             pll.minimizer().setStrategy(2)
         else: pll.minuit().setStrategy(2)
-        return pll
+        return alpha,pll
         
-
-    def contourPoints(self,pll):
-        w = self.model.w
-        p0 = [w.arg(a).getVal() for a in self.profileVars]
-        errMin = 0.12
-        pllPoints = [(p0[0]+errMin*math.cos(t),p0[1]+errMin*math.sin(t))
-                     for t in np.arange(0,2*math.pi,math.pi/8)]
-        pllCache = {}
-        def pllEval(p, force=False):
-            p = tuple(p)[:2]
-            if force or p not in pllCache:
-                for name,val in zip(self.profileVars,p): w.arg(name).setVal(val)
-                pllCache[p] = pll.getVal()
-            return pllCache[p]
-
-        p0 += pllEval(p0),        
-        targetPLL = oneSigmaNLL + p0[2]
-
-        def contourIntersect(guess,epsilon=0.01,xepsilon=0.001):
-            guess += pllEval(guess),
-            def point(g): return (p0[0] + g * (guess[0]-p0[0]),
-                                  p0[1] + g * (guess[1]-p0[1]))
-
-            def bsearch(lo,hi):
-                assert pllEval(lo) < targetPLL
-                assert pllEval(hi) > targetPLL
-                p = tuple(0.5*(lo[i]+hi[i]) for i in [0,1])
-                PLL = pllEval(p)
-                if math.sqrt(sum((lo[i]-hi[i])**2 for i in [0,1])) < xepsilon: return p
-                if PLL < targetPLL-epsilon: return bsearch(p,hi)
-                if PLL > targetPLL+epsilon: return bsearch(lo,p)
-                return p
-
-            mlo = guess if guess[2] < targetPLL else None
-            mhi = guess if targetPLL < guess[2] else None
-            iteration = 0
-            while True:
-                if guess[2] < p0[2] : return None
-                p = point( math.sqrt((targetPLL-p0[2]) / (guess[2]-p0[2])) )
-                if abs(targetPLL-pllEval(p)) < epsilon: return p
-                if pllEval(p) < targetPLL and (not mlo or pllEval(mlo) < pllEval(p)): mlo = p
-                if pllEval(p) > targetPLL and (not mhi or pllEval(p) < pllEval(mhi)): mhi = p
-                if iteration>5 and mlo and mhi: return bsearch(mlo,mhi)
-                if iteration>20 and not mhi: return point(0)
-                guess = p + (pllEval(p),)
-                iteration += 1
-
-        points = []
-        #chi2s = []
-        for p in pllPoints:
-            points.append(contourIntersect(p))
-            #chi2s.append((self.model.chi2('el'), self.model.chi2('mu')))
-            if not points[-1]: return None,None
-        reset = pllEval(p0,force=True)
-        #print chi2s
-        #print (self.model.chi2('el'),self.model.chi2('mu'))
-        return p0,points
-
-
-    @staticmethod
-    def fields(): 
-        return ('#label fqq.Ac_y_qq  fqg.Ac_y_qg  XX  XY  YY fhat_gg ' +
-                'fhat_qg fhat_qq fhat_ag Ac_y_qq_hat Ac_y_qg_hat f_gg.Ac_y_gg fitstatus NLL Ac_phi_qq_hat Ac_phi_gg_hat Ac_phi_ag_hat Ac_phi_qg_hat')
-
-    def __str__(self):
-        return '\t'.join(str(i) for i in [self.label] +
-                         list(self.profVal*self.scales) +
-                         [self.profErr[0,0]*self.scales[0]**2,
-                          self.profErr[0,1]*self.scales[0]*self.scales[1],
-                          self.profErr[1,1]*self.scales[1]**2] +
-                         self.fractionHats+
-                         list(self.scales) +
-                         [self.correction,
-                          self.fitstatus,
-                          self.NLL]+
-                         self.scalesPhi[:4]
-                         )
 
     @staticmethod
     def modelItems():
-        return ( [item%xx for item in ['Ac_y_tt%s','Ac_phi_tt%s','f_%s_hat','f_%s'] for xx in ['qq','qg','ag','gg']] +
-                 ['d_xs_%s'%item for item in ['tt','wj','st','dy']] +
+        return ( ['d_xs_%s'%item for item in ['tt','wj','st','dy']] +
                  ['expect_%s_%s'%(lep,s) for lep in ['el','mu'] for s in ['tt','wj','mj','st','dy']] +
-                 ['d_lumi','lumi_factor','R_ag','slosh','alphaL','alphaT','falphaL','falphaT','factor_elqcd','factor_muqcd'] )
-
-    @staticmethod
-    def altmodelNonItems():
-        return ( [item%xx for item in ['Ac_y_tt%s','Ac_phi_tt%s','f_%s_hat','f_%s'] for xx in ['qq','qg','ag','gg']] +
-                 ['R_ag','slosh','alphaL','alphaT','falphaL','falphaT'] )
+                 ['d_lumi','lumi_factor','alpha','factor_elqcd','factor_muqcd'] )
 
     def ttree(self, truth={}):
         # Note : ROOT and array.array use opposite conventions for upper/lowercase (un)signed
@@ -241,11 +153,10 @@ class fit(object):
                  str    : ("c", "C", "Char_t")
              }
 
-        genvals = dict([(item,-99999999.) for item in (['fitX','fitY']+self.modelItems())])
+        genvals = dict([(item,-99999999.) for item in (['fit']+self.modelItems())])
         genvals.update(truth)
 
-        selfStuff = ['label','fitX','fitY','fitXX','fitXY','fitYY','sigmaX','sigmaY',
-                     'NLL','fitstatus','contourPointsX','contourPointsY','correction','fixSM']
+        selfStuff = ['label','fit','sigma','NLL','fitstatus','fixSM']
         selfPairs = [(item,getattr(self,item)) for item in selfStuff]
         modelPairs = [(item,self.model.w.arg(item).getVal()) for item in self.modelItems()]
         

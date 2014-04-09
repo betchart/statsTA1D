@@ -9,7 +9,7 @@ import os
 import inputs
 
 class measurement(object):
-    def __init__(self, label, signal, profile, R0_, hackZeroBins=False,
+    def __init__(self, label, signal, R0_,
                  doVis=False, evalSystematics=[],
                  ensembles=None, ensSlice=(None,None),
                  calibrations=None, calSlice=(None,None),
@@ -22,27 +22,26 @@ class measurement(object):
         with open(self.outNameBase + 'SM.log', 'w') as log:
             pars = systematics.central()
             pars['label'] += 'SM'
-            self.SM = fit(signal=signal, profileVars=profile, R0_=R0_, log=log,
-                          hackZeroBins=hackZeroBins, fixSM=True, **pars)
-            print >> log, self.SM.model.TTbarComponentsStr()
+            self.SM = fit(signal=signal, R0_=R0_, log=log,
+                          fixSM=True, **pars)
+            self.SM.model.print_n(log)
 
         with open(self.outNameBase + '.log', 'w') as log:
             pars = systematics.central()
             if templateID!=None: pars['label'] = 'T%03d'%templateID
-            self.central = fit(signal=signal, profileVars=profile, R0_=R0_, log=log,
-                               hackZeroBins=hackZeroBins, templateID=templateID, **pars)
+            self.central = fit(signal=signal, R0_=R0_, log=log,
+                               templateID=templateID, **pars)
             self.central.model.print_n(log)
             self.central.ttreeWrite(self.outNameBase+'.root')
 
         defaults = dict([(v,self.central.model.w.arg(v).getVal()) 
-                         for v in ['slosh', 'falphaL', 'falphaT','R_ag',
-                                   'd_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']])
+                         for v in ['alpha', 'd_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']])
 
         if doVis: self.central.model.visualize2D(printName=self.outNameBase+'.pdf')
 
         if ensembles: 
             pars = systematics.central()
-            pars.update({'signal':signal, 'profileVars':profile, 'R0_':R0_, 'log':log, 'hackZeroBins':hackZeroBins})
+            pars.update({'signal':signal, 'profileVars':profile, 'R0_':R0_, 'log':log})
             for ensPars in ensemble_specs():
                 if ensPars['label'] not in ensembles: continue
                 ensPars.update({'ensSlice':ensSlice})
@@ -50,7 +49,7 @@ class measurement(object):
 
         if calibrations:
             pars = systematics.central()
-            pars.update({'signal':signal, 'profileVars':profile, 'R0_':R0_, 'log':log, 'hackZeroBins':hackZeroBins})
+            pars.update({'signal':signal, 'profileVars':profile, 'R0_':R0_, 'log':log})
             for calPars in calibration_specs():
                 if calPars['which'] not in calibrations: continue
                 calPars.update({'calSlice':calSlice})
@@ -63,35 +62,22 @@ class measurement(object):
             fname = self.outNameBase +'_sys_'+ sys['label'] + '.log'
             with open(fname, 'w') as log:
                 f = fit(signal=signal, profileVars=profile, R0_=R0_,
-                        quiet=False, hackZeroBins=hackZeroBins,
-                        defaults=defaults, log=log, **pars)
+                        quiet=False, defaults=defaults, log=log, **pars)
                 f.ttreeWrite(fname.replace('.log','.root'))
 
     @roo.quiet
     def ensembles(self, pars, letter='A', lumiFactor=1.0, ensSlice=(None,None), Nens=1000, label=''):
         wGen = self.central.model.w
+        truth = {'fit_Ac': self.central.fit}
+        for item in fit.modelItems(): truth[item] = wGen.arg(item).getVal()
+
         wGen.arg('lumi_factor').setVal(lumiFactor)
         pars['lumiFactor'] = lumiFactor
 
-        if letter=='D':
-            wGen.arg('falphaL').setVal(0)
-            wGen.arg('falphaT').setVal(0)
-            wGen.arg('slosh').setVal(self.SM.model.w.arg('slosh').getVal())
-            wGen.arg('R_ag').setVal(self.SM.model.w.arg('R_ag').getVal())
-
-        elif letter=='C':
-            for item in ['falphaL','falphaT','slosh','R_ag']:
-                wGen.arg(item).setVal(self.SM.model.w.arg(item).getVal())
-
-        elif letter=='B':
-            for item in ['falphaL','falphaT']:
-                wGen.arg(item).setVal(-wGen.arg(item).getVal())
-
+        if letter=='D': wGen.arg('alpha').setVal(0)
+        elif letter=='C': wGen.arg('alpha').setVal(1)
+        elif letter=='B': wGen.arg('alpha').setVal(-self.central.profVal)
         else: assert letter=='A'
-
-        truth = {'fitX': float(wGen.arg('falphaL').getVal()*self.central.scales[0]),
-                 'fitY': float(wGen.arg('falphaT').getVal()*self.central.scales[1])}
-        for item in fit.modelItems(): truth[item] = wGen.arg(item).getVal()
 
         mcstudy = r.RooMCStudy(wGen.pdf('model'),
                                wGen.argSet(','.join(self.central.model.observables+['channel'])),
@@ -120,7 +106,6 @@ class measurement(object):
             'genDirPre':pars['genDirPre'],
             'prePre':prePre,
             'templateID':None,
-            'hackZeroBins':pars['hackZeroBins'] and 'QCD'==part,
             'sampleList': sampleList
             }
         alt_channels = dict( [ ((lep,part), inputs.channel_data(lep, part, **args))
