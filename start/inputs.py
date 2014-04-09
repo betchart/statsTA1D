@@ -58,7 +58,7 @@ class channel_data(object):
 
     def __init__(self, lepton, partition, tag = 'ph_sn_jn_20',
                  signal="", sigPrefix="", dirPrefix="R04", genDirPre="R01",
-                 prePre = False, templateID=None, d_wbb=0, sampleList=[]):
+                 prePre = False, templateID=None, d_wbb=0, sampleList=[], rename=True):
         filePattern="data/stats_%s_%s_%s.root"
         tfile = r.TFile.Open(filePattern % (partition, lepton, tag))
         self.templateID = templateID
@@ -82,7 +82,7 @@ class channel_data(object):
 
         self.samples = {}
         for s in (sampleList or self.__samples__):
-            self.add(s, tfile, paths, prepaths, sname=('ttalt' if sampleList else ''))
+            self.add(s, tfile, paths, prepaths, sname=('ttalt' if sampleList and rename else ''))
         if d_wbb:
             self.add( 'Wbb', tfile, paths, prepaths)
             for group in ['datas','datasX','datasY']:
@@ -104,6 +104,7 @@ class channel_data(object):
         if s not in ['data'] or 'QCD' in tfile.GetName() : self.jiggle(data)
 
         xs = tfile.Get('xsHisto/' + s).GetBinContent(1) if s != 'data' else None
+        if s=='tt': xs/=4.0 # magic number hack fix for incorrect xs in data files.  4 for 4 sources of tt: {gg, qq_, gq, gq_}
         delta = (self.__xs_uncertainty__[s[:2]]
                  if s[:2] in self.__xs_uncertainty__ else None)
 
@@ -148,8 +149,7 @@ if __name__ == '__main__':
     i,j = [int(k) for k in sys.argv[1:3]] if len(sys.argv)>2 else (0,0)
     print '#', measurements[i], partitions[j]
     
-    pars = measurement_pars(measurements[i], partitions[j])
-    pars['signal'] = pars['signal'].replace('fitTopQueuedBin5', genNames['XL']).replace('gen','fit')
+    pars = measurement_pars(partitions[j])
     R0_,diffR0_ = pars['R0_'] if type(pars['R0_'])==tuple else (pars['R0_'],None)
 
     channels = dict([(lep,
