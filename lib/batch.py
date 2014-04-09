@@ -4,7 +4,7 @@ import tempfile
 
 class batch(object):
 
-    def __init__(self,cmds, nCores=4, site=None):
+    def __init__(self,cmds, nCores=8, site=None):
         self.nCores = nCores
         self.cmds = cmds
 
