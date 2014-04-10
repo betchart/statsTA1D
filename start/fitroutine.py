@@ -94,6 +94,9 @@ class fit(object):
         self.parbABC = list(parb.ABC)
 
         if not self.quiet:
+            print>>self.log
+            print>>self.log, 'Ac: %f +/- %f'% (self.fit, self.sigma)
+            print>>self.log
             print>>self.log, "fit alpha: %f +/- %f"%(alpha,alphaE)
             print>>self.log, "parb alpha: %f +/- %f"%(self.profVal, self.profErr)
             print>>self.log, "min PLL:", self.profPLL
