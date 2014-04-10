@@ -90,21 +90,20 @@ class fit(object):
         self.sigma = self.profErr * self.scale
 
         self.profPLL = pllEval(self.profVal)
-        self.pll = pll
+        for item in ['pll','points','pllPoints']: setattr(self,item,eval(item))
+        self.parbABC = list(parb.ABC)
 
         if not self.quiet:
-            print>>self.log, self.profVal, self.profPLL
-            print>>self.log, self.profErr
-            for item in ['alpha','d_xs_tt','d_xs_wj',
-                         'factor_elqcd','factor_muqcd']:
+            print>>self.log, "fit alpha: %f +/- %f"%(alpha,alphaE)
+            print>>self.log, "parb alpha: %f +/- %f"%(self.profVal, self.profErr)
+            print>>self.log, "min PLL:", self.profPLL
+            print>>self.log, parb
+            for item in ['d_xs_tt','d_xs_wj','factor_elqcd','factor_muqcd']:
                 print>>self.log, '\t', roo.str(w.arg(item))
-            print>>self.log, 'fit alpha:', alpha, '+/-', alphaE
-            print>>self.log, 'iBounds', iBounds
             print>>self.log
+            print>>self.log, 'iBounds', iBounds
             for i,(p,v) in enumerate(zip(points,pllPoints)):
                 print>>self.log, i, p, v
-            print>>self.log, parb
-            print>>self.log, 'parb alpha:', parb.xmin, '+/-', parb.dx(0.5)
         return
 
     @roo.quiet
@@ -156,7 +155,7 @@ class fit(object):
         genvals = dict([(item,-99999999.) for item in (['fit']+self.modelItems())])
         genvals.update(truth)
 
-        selfStuff = ['label','fit','sigma','NLL','fitstatus','fixSM']
+        selfStuff = ['label','fit','sigma','NLL','fitstatus','fixSM','points','pllPoints','scale','parbABC']
         selfPairs = [(item,getattr(self,item)) for item in selfStuff]
         modelPairs = [(item,self.model.w.arg(item).getVal()) for item in self.modelItems()]
         
