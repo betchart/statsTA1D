@@ -66,18 +66,14 @@ class measurement(object):
                 f.ttreeWrite(fname.replace('.log','.root'))
 
     @roo.quiet
-    def ensembles(self, pars, letter='A', lumiFactor=1.0, ensSlice=(None,None), Nens=1000, label=''):
+    def ensembles(self, pars, alpha=1.0, lumiFactor=1.0, ensSlice=(None,None), Nens=1000, label=''):
         wGen = self.central.model.w
         truth = {'fit_Ac': self.central.fit}
         for item in fit.modelItems(): truth[item] = wGen.arg(item).getVal()
 
+        wGen.arg('alpha').setVal(alpha)
         wGen.arg('lumi_factor').setVal(lumiFactor)
         pars['lumiFactor'] = lumiFactor
-
-        if letter=='D': wGen.arg('alpha').setVal(0)
-        elif letter=='C': wGen.arg('alpha').setVal(1)
-        elif letter=='B': wGen.arg('alpha').setVal(-self.central.profVal)
-        else: assert letter=='A'
 
         mcstudy = r.RooMCStudy(wGen.pdf('model'),
                                wGen.argSet(','.join(self.central.model.observables+['channel'])),
