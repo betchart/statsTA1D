@@ -1,24 +1,21 @@
-measurements = ['asymmetry', 'fraction']
 partitions = ['full', 'hiM', 'loM', 'hiY', 'loY']
+from asymmNames import genNames
 
-
-def measurement_pars(measure='asymmetry', partition='full'):
-    fields = ('R0_', 'signal', 'profile')
+def measurement_pars(partition='full', var='XL'):
+    fields = ('R0_', 'signal')
     base = 3
     hemicycle = 5
-    asymmetry = (base, 'fitTopQueuedBin5_TridiscriminantWTopQCD', ('falphaL', 'falphaT'))
-    fraction = (base+hemicycle, 'fitTopTanhRapiditySum_triD', ('d_qq',))
+    asymmetry = (base, 
+                 genNames[var].replace('gen','fit')+'_TridiscriminantWTopQCD')
 
-    mtype = dict([(m, dict(zip(fields, eval(m)))) for m in measurements])
-    pars = mtype[measure]
+    pars = dict(zip(fields, asymmetry))
     N = pars['R0_']
     cycle = 2*hemicycle
     pDirs = [N,
              N + 1*cycle, (N, N + 1*cycle),
              N + 2*cycle, (N, N + 2*cycle), (N, N + 2*cycle), (N, N + 1*cycle)]
     pars.update({'R0_': dict(zip(partitions,pDirs))[partition]})
-    if measure=='fraction': pars.update({'hackZeroBins':True})
-    pars.update({'label':'_'.join([measure,partition])})
+    pars.update({'label':'_'.join([var,partition])})
     return pars
 
 

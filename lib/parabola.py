@@ -26,3 +26,6 @@ class parabola(object) :
     def dx(self,dy) :
         A,_,_ = self.ABC
         return math.sqrt(dy/A) if dy/A>0 else None
+
+    def __str__(self):
+        return "Ax**2 + 2*Bx + C {A:%g, B:%g, C:%g}"%tuple(self.ABC)

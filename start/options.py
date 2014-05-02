@@ -5,6 +5,8 @@ def argOrTrue(option, opt, value, parser) :
     if peek and peek[0]!='-' : del parser.rargs[0]
     setattr(parser.values, option.dest, peek if peek and peek[0]!='-' else True)
 
+parser.add_option("--XL", dest="XL", default=False, action='store_true', help='measurement of asymmetry in XL')
+parser.add_option("--XT", dest="XT", default=False, action='store_true', help='measurement of asymmetry in XT')
 parser.add_option("--partitions", dest="partitions", default=None, metavar='p1,p2,...', action="callback", callback=argOrTrue, help='specify list of partitions, or list partitions')
 parser.add_option("--systematics", dest="systematics", default=None, metavar='sys1,sys2,...', action="callback", callback=argOrTrue, help='specify list of systematics, or list systematics')
 parser.add_option("--ensembles", dest="ensembles", default=None, metavar='ens1,ens2,...', action="callback", callback=argOrTrue, help='specify list of ensembles or list ensembles')
@@ -20,6 +22,9 @@ parser.add_option("--chunk", dest='chunk', default=10, metavar='N', type="int", 
 def opts() :
     options,args = parser.parse_args()
     if options.partitions==None:
+        parser.print_help()
+        exit()
+    if not options.XL^options.XT:
         parser.print_help()
         exit()
     return options

@@ -1,7 +1,7 @@
 import ROOT as r
 import lib
 import numpy as np
-from asymmNames import genNameX,genNameY
+from asymmNames import genNameX,genNameY,genNames
 
 class sample_data(object):
     def __init__(self, signalDistribution, xs=None, sigma=None,
@@ -20,26 +20,7 @@ class sample_data(object):
 
     @staticmethod
     def format(sd):
-        if sd.GetDimension()<3:
-            return ((sd,) + tuple(lib.symmAnti(sd)))
-        sd.SetTitle(";x;y;z")
-        yz = sd.Project3D("zy e")
-        yz_symm,yz_anti = lib.symmAnti(yz)
-        yz_minusminus = yz.Clone(yz.GetName()+'_minusminus')
-        yz_minusplus = yz.Clone(yz.GetName()+'_minusplus')
-        z = sd.Project3D("ze")
-        for iZ in range(1,1+sd.GetNbinsZ()):
-            sd.GetZaxis().SetRange(iZ,iZ)
-            xy = sd.Project3D("tmp%d_yxe"%iZ)
-            x = xy.ProjectionX()
-            M = lib.coupling(xy)
-            M_symm,M_anti = lib.coupling_symmAnti(M)
-            xsymm, xanti = lib.symmAnti(x)
-            for iY in range(1,1+M.GetNbinsY()):
-                yz_minusminus.SetBinContent(iY,iZ, sum(xanti.GetBinContent(iX) * M_anti.GetBinContent(iX,iY) for iX in range(1,1+x.GetNbinsX())))
-                yz_minusplus.SetBinContent(iY,iZ, sum(xsymm.GetBinContent(iX) * M_anti.GetBinContent(iX,iY) for iX in range(1,1+x.GetNbinsX())))
-        sd.GetZaxis().SetRange(0,sd.GetNbinsZ())
-        return yz,yz_symm,yz_anti,yz_minusminus,yz_minusplus
+        return ((sd,) + tuple(lib.symmAnti(sd)))
 
     def subtract(self,other):
         assert self.xs == other.xs
@@ -53,15 +34,8 @@ class sample_data(object):
                 d.Add(od,-1)
 
     def asymmStr(self):
-        unqueued = lib.unQueuedBins(self.datas[0],5,[-1,1],[-1,1])
-        unqx = unqueued.ProjectionX()
-        unqy = unqueued.ProjectionY()
-        ay = tuple([100*f for f in lib.asymmetry(unqx)])
-        ap = tuple([100*f for f in lib.asymmetry(unqy)])
-        del unqueued, unqx, unqy
-        return ';  '.join([ ('ay: % .2f(%.2f)'%ay).rjust(8),
-                            ('ap: % .2f(%.2f)'%ap).rjust(8)
-                        ])
+        Ac = tuple([100*f for f in lib.asymmetry(self.datas[0])])
+        return ("%. 2f(%.2f)" % Ac).rjust(8)
 
 
     def __str__(self):
@@ -78,20 +52,19 @@ class sample_data(object):
 
 
 class channel_data(object):
-    __samples__ = ['data', 'wj', 'dy', 'st', 'ttgg', 'ttqg', 'ttqq', 'ttag', 'tt']
+    __samples__ = ['data', 'wj', 'dy', 'st', 'tt']
     __xs_uncertainty__ = {'tt': 1.0, 'wj': 2.0, 'st': 0.04, 'dy': 0.04}
     nTemplates = 1000
 
     def __init__(self, lepton, partition, tag = 'ph_sn_jn_20',
-                 signal="", sigPrefix="", dirPrefix="R04", genDirPre="R01", getTT=False,
-                 prePre = False, hackZeroBins=False, templateID=None, threeD=False, extra=True, d_wbb=0, sampleList=[]):
+                 signal="", sigPrefix="", dirPrefix="R04", genDirPre="R01",
+                 prePre = False, templateID=None, d_wbb=0, sampleList=[], rename=True):
         filePattern="data/stats_%s_%s_%s.root"
         tfile = r.TFile.Open(filePattern % (partition, lepton, tag))
         self.templateID = templateID
         self.lepton = lepton
         self.lumi = tfile.Get('lumiHisto/data').GetBinContent(1)
         self.lumi_sigma = 0.05
-        self.extra = extra
 
         def full(pf) :
             return next((ky.GetName() + '/' for ky in tfile.GetListOfKeys()
@@ -99,13 +72,8 @@ class channel_data(object):
                         '')
         fullDirName = full(dirPrefix)
 
-        if threeD:
-            signal3D = signal.split('_')[0].replace('fit','gen') +'_'+ signal
-            paths = (fullDirName + sigPrefix + signal3D,
-                     fullDirName + signal3D)
-        else: paths = ()
-        paths += (fullDirName + sigPrefix + signal,
-                  fullDirName + signal)
+        paths = (fullDirName + sigPrefix + signal,
+                 fullDirName + signal)
 
         prepaths = (full(genDirPre) + 
                     (sigPrefix if prePre else '') + 
@@ -113,8 +81,8 @@ class channel_data(object):
                     'meweighted/')
 
         self.samples = {}
-        for s in (sampleList or self.__samples__[(4 if getTT else 0):(None if getTT else -1)]):
-            self.add(s, tfile, paths, prepaths, sname=('ttalt' if sampleList else ''))
+        for s in (sampleList or self.__samples__):
+            self.add(s, tfile, paths, prepaths, sname=('ttalt' if sampleList and rename else ''))
         if d_wbb:
             self.add( 'Wbb', tfile, paths, prepaths)
             for group in ['datas','datasX','datasY']:
@@ -123,7 +91,6 @@ class channel_data(object):
                     d.Add(od,d_wbb)
             del self.samples['Wbb']
         tfile.Close()
-        if hackZeroBins: self.hackZeroBins()
 
     def add(self, s, tfile, paths, prepaths, sname=''):
         def get(s,ps):
@@ -134,22 +101,10 @@ class channel_data(object):
 
         data = get('/' + s,paths).Clone(self.lepton + '_' + s)
         data.SetDirectory(0)
-        if s in ['ttqq','ttqg','ttag'] and self.extra:
-            extra = get('/e'+s, paths).Clone(self.lepton + '_' + s)
-            norm = data.Integral()
-
-            if self.extra == 'only':
-                extra.Scale( norm / extra.Integral() )
-                extra.SetDirectory(0)
-                data = extra
-            else:
-                data.Scale( data.GetEffectiveEntries() / norm )
-                extra.Scale( extra.GetEffectiveEntries() / extra.Integral() )
-                data.Add(extra)
-                data.Scale( norm / data.Integral() )
         if s not in ['data'] or 'QCD' in tfile.GetName() : self.jiggle(data)
 
         xs = tfile.Get('xsHisto/' + s).GetBinContent(1) if s != 'data' else None
+        if s=='tt': xs/=4.0 # magic number hack fix for incorrect xs in data files.  4 for 4 sources of tt: {gg, qq_, gq, gq_}
         delta = (self.__xs_uncertainty__[s[:2]]
                  if s[:2] in self.__xs_uncertainty__ else None)
 
@@ -168,14 +123,6 @@ class channel_data(object):
                 for iY in range(1,1+hist.GetNbinsY()):
                     hist.SetBinContent(iX,iY,iZ,np.random.poisson(hist.GetBinContent(iX,iY,iZ)*factor, self.nTemplates)[self.templateID]/factor)
         return
-
-    def hackZeroBins(self):
-        if 'data' not in self.samples: return
-        h = self.samples['data'].datas[0]
-        [h.SetBinContent(iX,iY,1e-12)
-         for iX in range(1,1+h.GetNbinsX())
-         for iY in range(1,1+h.GetNbinsY())
-         if not h.GetBinContent(iX,iY)]
 
     def subtract(self, other):
         for s,samp in self.samples.items():
@@ -202,21 +149,19 @@ if __name__ == '__main__':
     i,j = [int(k) for k in sys.argv[1:3]] if len(sys.argv)>2 else (0,0)
     print '#', measurements[i], partitions[j]
     
-    pars = measurement_pars(measurements[i], partitions[j])
+    pars = measurement_pars(partitions[j])
     R0_,diffR0_ = pars['R0_'] if type(pars['R0_'])==tuple else (pars['R0_'],None)
-
-    getTT = True
 
     channels = dict([(lep,
                       channel_data(lep,
                                    'top',
                                    signal=pars['signal'],
-                                   dirPrefix="R%02d" % R0_, getTT=getTT)) for lep in
+                                   dirPrefix="R%02d" % R0_)) for lep in
                      ['el','mu'] ])
     if diffR0_:
         for lep,chan in channels.items():
             chan.subtract(channel_data(lep,'top',signal=pars['signal'],
-                                       dirPrefix="R%02d" % diffR0_, getTT=getTT))
+                                       dirPrefix="R%02d" % diffR0_))
     print
     print channels['el']
     print

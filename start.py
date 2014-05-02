@@ -62,18 +62,19 @@ if __name__ == '__main__':
             enschunks = chunk(ensSlice, options.chunk) if type(ensSlice)==list else chunktuple(ensSlice, options.chunk)
             calchunks = chunk(calSlice, options.chunk) if type(calSlice)==list else chunktuple(calSlice, options.chunk)
             tmpchunks = chunktuple(templates, options.chunk)
-            if syschunks: stack.extend(["./start.py --partition %s --systematics %s"%(part, ','.join(s)) for s in syschunks])
-            if templates: stack.extend(["./start.py --partition %s --templates %d:%d"%((part,)+t) for t in tmpchunks])
-            if enschunks: stack.extend(["./start.py --partition %s --ensembles %s --ensSlice "%(part, e) + (','.join(str(s_) for s_ in s) if type(s)==list else "%d:%d"%s) for s in enschunks for e in ensembles])
-            if calchunks: stack.extend(["./start.py --partition %s --calibrations %s --calSlice "%(part, e) + (','.join(str(s_) for s_ in s) if type(s)==list else "%d:%d"%s) for s in calchunks for e in calibrations])
-            if not any([syschunks,tmpchunks,enschunks,calchunks]): stack.append("./start.py --partition %s"%part)
+            letter = 'L' if options.XL else 'T'
+            if syschunks: stack.extend(["./start.py --X%s --partition %s --systematics %s"%(letter, part, ','.join(s)) for s in syschunks])
+            if templates: stack.extend(["./start.py --X%s --partition %s --templates %d:%d"%((letter, part,)+t) for t in tmpchunks])
+            if enschunks: stack.extend(["./start.py --X%s --partition %s --ensembles %s --ensSlice "%(letter, part, e) + (','.join(str(s_) for s_ in s) if type(s)==list else "%d:%d"%s) for s in enschunks for e in ensembles])
+            if calchunks: stack.extend(["./start.py --X%s --partition %s --calibrations %s --calSlice "%(letter, part, e) + (','.join(str(s_) for s_ in s) if type(s)==list else "%d:%d"%s) for s in calchunks for e in calibrations])
+            if not any([syschunks,tmpchunks,enschunks,calchunks]): stack.append("./start.py --X%s --partition %s"%(letter,part))
         print '\n'.join(stack)
         batch.batch(stack, site=options.site)
     else:
         for part in partitions:
             for tID in ([None] if templates[0]==templates[1] else 
                         range(channel_data.nTemplates)[slice(*templates)]):
-                mp = systematics.measurement_pars(partition=part)
+                mp = systematics.measurement_pars(partition=part, var = 'XL' if options.XL else 'XT')
                 mp.update({'doVis':options.visualize,
                            'evalSystematics':systs if tID == None else [],
                            'ensembles':ensembles if tID == None else [],
