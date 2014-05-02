@@ -5,6 +5,7 @@ import systematics
 from ensembles import ensemble_specs
 from ensembles import calibration_specs
 from fitroutine import fit
+from asymmNames import genNames
 import os
 import inputs
 
@@ -15,6 +16,7 @@ class measurement(object):
                  calibrations=None, calSlice=(None,None),
                  outDir='output/', templateID=None):
         os.system('mkdir -p %s' % outDir)
+        self.doVis = doVis
         self.outNameBase = (outDir + 
                             '_'.join(label.split(',')) + 
                             ('_t%03d'%templateID if templateID!=None else ''))
@@ -37,7 +39,7 @@ class measurement(object):
         defaults = dict([(v,self.central.model.w.arg(v).getVal()) for v in 
                          ['alpha', 'd_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']])
 
-        if doVis: self.central.model.visualize2D(printName=self.outNameBase+'.pdf')
+        if doVis: self.central.model.visualize(printName=self.outNameBase+'.pdf')
 
         if ensembles: 
             pars = systematics.central()
@@ -89,6 +91,7 @@ class measurement(object):
                 pars['log']=log
                 f = fit(altData=alt, **pars)
             f.ttreeWrite(self.outNameBase + pars['label'] + '.root', truth)
+            if self.doVis: f.model.visualize(self.outNameBase + pars['label'] + '.pdf')
 
     @roo.quiet
     def calibrations(self, pars, which='mn', calSlice=(None,None), N=1000, label='', **kwargs):
@@ -126,9 +129,10 @@ class measurement(object):
                                       (wGen.arg('expect_mu_ttalt').getVal() + wGen.arg('expect_el_ttalt').getVal()) - 1)
         # not clear how to do the same for factor_*_qcd (equivalent bg representations)
 
-        truth = dict([(s,eval(s)) for s in ['Ac_y_ttalt','Ac_phi_ttalt']])
+        truth = {'Ac': Ac_y_ttalt if genNames['XL'][3:] in pars['signal'] else Ac_phi_ttalt}
         altItems = ['expect_%s_ttalt'%s for s in ['el','mu']]
-        for item in (set(fit.modelItems()+altItems)-set(fit.altmodelNonItems())): truth[item] = wGen.arg(item).getVal()
+        #for item in (set(fit.modelItems()+altItems)-set(fit.altmodelNonItems())): truth[item] = wGen.arg(item).getVal()
+        for item in (set(fit.modelItems()+altItems)-set()): truth[item] = wGen.arg(item).getVal()
 
         mcstudy = r.RooMCStudy(wGen.pdf('altmodel'),
                                wGen.argSet(','.join(model.observables+['channel'])),
@@ -144,3 +148,4 @@ class measurement(object):
                 pars['log']=log
                 f = fit(altData=alt, **pars)
             f.ttreeWrite(self.outNameBase + pars['label'] + '.root', truth)
+            if self.doVis: f.model.visualize(self.outNameBase + pars['label'] + '.pdf')

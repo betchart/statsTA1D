@@ -187,6 +187,7 @@ class topModel(object):
         if altData:
             altData.SetName('data')
             roo.wimport(w, altData)
+            self.altData = altData
             return
         obs_ = w.argSet(','.join(self.observables))
         obs = r.RooArgList(obs_)
@@ -249,9 +250,9 @@ class topModel(object):
         return sum(chi2)
 
     @roo.quiet
-    def visualize2D(self, printName=''):
+    def visualize(self, printName=''):
         w = self.w
-        titles = ['X_{%s}'%self.var[1],'#Delta']
+        titles = ['X_{%s}'%self.observables[0],'#Delta']
         for v,t in zip(self.observables,titles) :
             w.arg(v).SetTitle(t)
 
@@ -259,6 +260,7 @@ class topModel(object):
         r.setTDRStyle()
         r.TGaxis.SetMaxDigits(4)
         canvas = r.TCanvas()
+        canvas.Divide(5,2,0,0)
         canvas.Print(printName+'[')
 
         def expected_histogram(pdfname, expect=0):
@@ -269,22 +271,25 @@ class topModel(object):
                 exit()
             args = ','.join(self.observables)
             exp = mod.generateBinned(w.argSet(args), expect, True, False)
-            hist = exp.createHistogram(args, 5, 5, 5)
+            hist = exp.createHistogram(args, 25, 5)
             hist.SetName(pdfname+'genHist')
             return hist
 
         for j,lep in enumerate(['el','mu']):
-            dhist = unqueue(self.channels[lep].samples['data'].datas[0], True)
+            data = w.data('data') if not hasattr(self,'altData') else self.altData
+            tmp = next(d for d in data.split(w.arg('channel')) if d.GetName()==lep)
+            dhist = tmp.createHistogram('altaData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(25,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(5,-1,1)))
+            
             hist = expected_histogram('model_'+lep)
 
             print self.channels[lep].samples.keys()
-            hists = dict([(s, expected_histogram(lep+'_'+s+('_both' if s in ['wj','st','ttgg'] else '_symm' if s=='dy' else ''), 
+            hists = dict([(s, expected_histogram(lep+'_'+s+('_both' if s in ['wj','st'] else '_symm' if s=='dy' else ''), 
                                                  w.arg('expect_%s_%s'%(lep,s)).getVal()))
                      for s in self.channels[lep].samples if s not in ['data']])
             hists['mj'] = expected_histogram(lep+'_mj', w.arg('expect_%s_mj'%lep).getVal())
 
-            stack = [('ttqq',),('ttqg','ttag'),('ttgg',),('wj',),('mj',), ('dy','st')][::-1]
-            colors = [r.kViolet,r.kBlue-7,r.kBlue+2,r.kGreen+1,r.kRed,r.kGray][::-1]
+            stack = [('tt',),('wj',),('mj',), ('dy','st')][::-1]
+            colors = [r.kViolet,r.kGreen+1,r.kRed,r.kGray][::-1]
             stackers = []
             for s,c in zip(stack,colors):
                 h = hists[s[0]]
@@ -294,75 +299,43 @@ class topModel(object):
                 stackers.append(h)
 
 
-            ### FIXME in loop ###
-            for i in range(2):
-                def proj(h):
-                    return getattr(h, 'Projection'+'XY'[i])(h.GetName()+'xy'[i], 0, -1, 0 if i==1 else 3, -1 if i==1 else 3)
-                model = proj(hist)
-                data = proj(dhist)
-                comps = [proj(h) for h in stackers]
-                hstack = r.THStack('stack','')
-                for c in comps: hstack.Add(c)
-                model.SetMinimum(0)
-                model.SetLineColor(r.kBlue)
-                data.SetMinimum(0)
-                data.Draw()
-                model.Draw('hist same')
-                hstack.Draw('hist same')
-                data.Draw('same')
-                canvas.Print(printName)
-                sys.stdout.write(' ')
-                if i<2:
-                    _,amodel = lib.symmAnti(model)
-                    _,adata = lib.symmAnti(data)
-                    astackers = [lib.symmAnti(s)[1] for s in stackers]
-                    amax = 1.3* max(adata.GetMaximum(),amodel.GetMaximum())
-                    adata.SetMaximum(amax)
-                    adata.SetMinimum(-amax)
-                    amodel.SetMinimum(-amax)
-                    amodel.SetMaximum(amax)
-                    adata.Draw()
-                    amodel.Draw('hist same')
-                    for a in astackers:
-                        a.Draw('hist same')
-                    canvas.Print(printName)
-                    sys.stdout.write(' ')
-                continue
+            def proj(h):
+                return [lib.symmAnti(h.ProjectionX( h.GetName()+'x%d'%i,i+1,i+1)) for i in range(5)]
+            model = proj(hist)
+            data = proj(dhist)
+            comps = [proj(h) for h in stackers]
+            hstack = [r.THStack('stack%d'%i,'') for i in range(5)]
+            maximum = 1.1 * max(d[0].GetMaximum() for d in data)
+            amaximum = 1.7 * max([max(abs(h[1].GetMaximum()),abs(h[1].GetMinimum())) for hist in [data,model] for h in hist])
+            antis = []
+            for i in range(5):
+                canvas.cd(i+1)
+                for c in comps: 
+                    hstack[i].Add(c[i][0])
+                model[i][0].SetMinimum(0)
+                model[i][0].SetLineColor(r.kBlue)
+                data[i][0].SetMinimum(0)
+                data[i][0].SetMaximum(maximum)
+                data[i][0].Draw()
+                model[i][0].Draw('hist same')
+                hstack[i].Draw('hist same')
+                data[i][0].Draw('same')
 
-                canvas.cd(1+j*3+i)
-                f = w.arg(self.observables[i]).frame()
-                f.SetLineColor(r.kWhite)
-                mod = w.pdf('model_%s'%lep)
-                toy = mod.generateBinned(w.argSet(','.join(self.observables)), 1e7)
-                args = [r.RooFit.ProjWData(toy)]
-                dargs = [f,
-                         r.RooFit.MarkerSize(1.1),
-                         #r.RooFit.XErrorSize(0)
-                         ]
-                w.data('data_%s'%lep).plotOn(*dargs)
+                canvas.cd(i+6)
+                data[i][1].SetMinimum(-amaximum)
+                data[i][1].SetMaximum(amaximum)
+                data[i][1].Draw()
+                model[i][1].SetLineWidth(2)
+                model[i][1].SetLineColor(r.kBlue)
+                model[i][1].Draw('hist same')
+                for h,c in zip(comps,colors)[-1:]:
+                    h[i][1].ResetAttFill()
+                    h[i][1].Draw('hist same')
+            sys.stdout.write(' ')
+            canvas.Print(printName)
 
-                pf = '' if self.asymmetry else '_both'
-                stack = [('_ttqq'+pf,),('_ttqg'+pf,'_ttag'+pf),('_ttgg_both',),('_wj_both',),
-                         ('qcd_*',), ('_dy*','_st_both')]
-                colors = [r.kViolet,r.kBlue-7,r.kBlue+2,r.kGreen+1,r.kRed,r.kGray]
-                for iStack in range(len(stack)):
-                    sys.stdout.write(".,;:!|"[iStack])
-                    sys.stdout.flush()
-                    comps = lep+(','+lep).join(sum(stack[iStack:],()))
-                    mod.plotOn(f,
-                               r.RooFit.Components(comps),
-                               r.RooFit.LineColor(colors[iStack]),
-                               r.RooFit.FillColor(colors[iStack]),
-                               r.RooFit.DrawOption('F'),
-                               *args)
-
-                w.data('data_%s'%lep).plotOn(*dargs)
-                #mod.plotOn(f, r.RooFit.LineColor(r.kOrange), *args)
-
-                f.Draw()
-                canvas.Print(printName)
-                sys.stdout.write(' ')
         print
         canvas.Print(printName+']')
+        print printName, 'written'
 
         return
