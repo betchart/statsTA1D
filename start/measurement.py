@@ -111,6 +111,10 @@ class measurement(object):
         alt_channels = dict( [ ((lep,part), inputs.channel_data(lep, part, **args))
                                for lep in ['el','mu'] for part in ['top','QCD']] )
 
+        if 'xsfactor' in kwargs:
+            alt_channels[('el','top')].samples['ttalt'].xs *= kwargs['xsfactor']
+            alt_channels[('mu','top')].samples['ttalt'].xs *= kwargs['xsfactor']
+
         # get Ac_phi_ttalt and Ac_y_ttalt
         filePattern = 'data/stats_top_mu_%s.root'
         tag = 'ph_sn_jn_20'
@@ -127,6 +131,9 @@ class measurement(object):
         # bring xs_ttalt to the most consistant value possible
         wGen.arg('d_xs_ttalt').setVal((wGen.arg('expect_mu_tt').getVal() + wGen.arg('expect_el_tt').getVal()) /
                                       (wGen.arg('expect_mu_ttalt').getVal() + wGen.arg('expect_el_ttalt').getVal()) - 1)
+        if not (-0.5 < wGen.arg('d_xs_ttalt').getVal() < 1.5):
+            print 'ttalt xs invalid! Adjust calibration_specs!'
+            exit()
         # not clear how to do the same for factor_*_qcd (equivalent bg representations)
 
         truth = {'Ac': Ac_y_ttalt if genNames['XL'][3:] in pars['signal'] else Ac_phi_ttalt}

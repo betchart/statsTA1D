@@ -17,9 +17,9 @@ def ensemble_specs():
 def calibration_specs():
     return [{'which':'mg', 'sample':'calib_mg.pu.sf'},
             {'which':'mn', 'sample':'calib_mn.pu.sf'},
-            {'which':'ZP', 'sample':'calib_ZP.pu.sf'},
-            {'which':'A2K', 'sample':'calib_A2K.pu.sf'},
-            {'which':'R2K', 'sample':'calib_R2K.pu.sf'},
-            {'which':'A.2K', 'sample':'calib_A200.pu.sf'},
-            {'which':'R.2K', 'sample':'calib_R200.pu.sf'},
-            {'which':'L.2K', 'sample':'calib_L200.pu.sf'}]
+            {'which':'ZP', 'sample':'calib_ZP.pu.sf','xsfactor':0.3},
+            {'which':'A2K', 'sample':'calib_A2K.pu.sf','xsfactor':0.3},
+            {'which':'R2K', 'sample':'calib_R2K.pu.sf','xsfactor':0.3},
+            {'which':'A.2K', 'sample':'calib_A200.pu.sf','xsfactor':0.3},
+            {'which':'R.2K', 'sample':'calib_R200.pu.sf','xsfactor':0.3},
+            {'which':'L.2K', 'sample':'calib_L200.pu.sf','xsfactor':0.3}]
