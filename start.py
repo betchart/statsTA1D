@@ -81,7 +81,8 @@ if __name__ == '__main__':
                            'ensSlice':ensSlice,
                            'calibrations':calibrations if tID == None else [],
                            'calSlice':calSlice,
-                           'templateID':tID})
+                           'templateID':tID,
+                           'only':'_mu' if options.onlymu else '_el' if options.onlyel else ''})
                 print mp
                 if '_CONDOR_SCRATCH_DIR' in os.environ:
                     mp['outDir'] = os.environ['_CONDOR_SCRATCH_DIR'] + '/output/'

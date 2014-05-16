@@ -14,15 +14,16 @@ class measurement(object):
                  doVis=False, evalSystematics=[],
                  ensembles=None, ensSlice=(None,None),
                  calibrations=None, calSlice=(None,None),
-                 outDir='output/', templateID=None):
+                 outDir='output/', templateID=None, only=""):
         os.system('mkdir -p %s' % outDir)
         self.doVis = doVis
         self.outNameBase = (outDir + 
-                            '_'.join(label.split(',')) + 
+                            '_'.join(label.split(',')) + only +
                             ('_t%03d'%templateID if templateID!=None else ''))
 
         with open(self.outNameBase + 'SM.log', 'w') as log:
             pars = systematics.central()
+            pars['only'] = only
             pars['label'] += 'SM'
             self.SM = fit(signal=signal, R0_=R0_, log=log,
                           fixSM=True, **pars)
@@ -31,6 +32,7 @@ class measurement(object):
         with open(self.outNameBase + '.log', 'w') as log:
             pars = systematics.central()
             pars['log'] = log
+            pars['only'] = only
             if templateID!=None: pars['label'] = 'T%03d'%templateID
             self.central = fit(signal=signal, R0_=R0_, templateID=templateID, **pars)
             self.central.model.print_n(log)
