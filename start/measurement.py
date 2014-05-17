@@ -72,7 +72,7 @@ class measurement(object):
     @roo.quiet
     def ensembles(self, pars, alpha=1.0, lumiFactor=1.0, ensSlice=(None,None), Nens=1000, label=''):
         wGen = self.central.model.w
-        truth = {'fit': alpha*self.central.scale}
+        truth = {'Ac': alpha*self.central.scale}
         wGen.arg('alpha').setVal(alpha)
         wGen.arg('lumi_factor').setVal(lumiFactor)
         pars['lumiFactor'] = lumiFactor

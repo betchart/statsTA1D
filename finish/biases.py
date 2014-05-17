@@ -6,7 +6,7 @@ r.gROOT.SetBatch(1)
 
 
 def mean(tree,query):
-    hist = r.TH1D('hist','',100,-1,1)
+    hist = r.TH1D('hist','',1000,-10,10)
     tree.Draw("(%s)>>hist"%query)
     mean = hist.GetMean()
     hist.Clear()
