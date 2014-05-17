@@ -145,6 +145,28 @@ class fit(object):
                  ['expect_%s_%s'%(lep,s) for lep in ['el','mu'] for s in ['tt','wj','mj','st','dy']] +
                  ['d_lumi','lumi_factor','alpha','factor_elqcd','factor_muqcd'] )
 
+    def chi2(self, channel='el'):
+        return []
+
+    @property
+    def chi2_el(self): return self.chi2('el')
+
+    @property
+    def chi2_mu(self): return self.chi2('mu')
+
+    @property
+    def Ac_raw_el_data(self): return self.model.Ac_raw('el')
+
+    @property
+    def Ac_raw_mu_data(self): return self.model.Ac_raw('mu')
+
+    @property
+    def Ac_raw_el_model(self): return self.model.Ac_raw('el', 'model')
+
+    @property
+    def Ac_raw_mu_model(self): return self.model.Ac_raw('mu', 'model')
+    
+
     def ttree(self, truth={}):
         # Note : ROOT and array.array use opposite conventions for upper/lowercase (un)signed
         #         name     array  ROOT  ROOT_typedef
@@ -158,7 +180,8 @@ class fit(object):
         genvals = dict([(item,-99999999.) for item in (['fit']+self.modelItems())])
         genvals.update(truth)
 
-        selfStuff = ['label','fit','sigma','NLL','fitstatus','fixSM','points','pllPoints','scale','parbABC']
+        selfStuff = ['label','fit','sigma','NLL','fitstatus','fixSM','points','pllPoints','scale','parbABC',
+                     'chi2_el','chi2_mu','Ac_raw_el_data','Ac_raw_mu_data','Ac_raw_el_model','Ac_raw_mu_model']
         selfPairs = [(item,getattr(self,item)) for item in selfStuff]
         modelPairs = [(item,self.model.w.arg(item).getVal()) for item in self.modelItems()]
         

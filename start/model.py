@@ -134,8 +134,8 @@ class topModel(object):
                                 for key, value in whichs['qcd'].items()])))
          for lepton in self.channels]
 
-        [roo.factory(w, "SUM::model_%s( expect_%sqcd_data * %sqcd_data_both, %s )" %
-                     (name+lepton, lepton, lepton,
+        [roo.factory(w, "SUM::%smodel_%s( expect_%sqcd_data * %sqcd_data_both, %s )" %
+                     (name,lepton, lepton, lepton,
                       ','.join(['expect_%s_%s * %s_%s%s' %
                                 (lepton + part, key, lepton + part, key, value)
                                 for part, which in whichs.items()
@@ -144,8 +144,8 @@ class topModel(object):
          for lepton in self.channels]
 
         roo.factory(w, "SIMUL::%smodel(channel, %s)" %
-                    (name, ', '.join("%s=model_%s" %
-                                     (lepton, name + lepton) for lepton in self.channels)))
+                    (name, ', '.join("%s=%smodel_%s" %
+                                     (lepton, name, lepton) for lepton in self.channels)))
 
     def import_alt_model(self, channelDict):
         w = self.w
@@ -249,6 +249,27 @@ class topModel(object):
         del hist
         return sum(chi2)
 
+    def expected_histogram(self, pdfname, expect=0):
+        w = self.w
+        mod = w.pdf(pdfname)
+        args = ','.join(self.observables)
+        exp = mod.generateBinned(w.argSet(args), expect, True, False)
+        hist = exp.createHistogram(args, 25, 5)
+        hist.SetName(pdfname+'genHist')
+        return hist
+
+    def data_hist(self, lep):
+        w = self.w
+        data = w.data('data') if not hasattr(self,'altData') else self.altData
+        tmp = next(d for d in data.split(w.arg('channel')) if d.GetName()==lep)
+        dhist = tmp.createHistogram('altaData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(25,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(5,-1,1)))
+        return dhist
+
+
+    @staticmethod
+    def proj(h):
+        return [h.ProjectionX( h.GetName()+'x%d'%i,i+1,i+1) for i in range(5)]
+
     @roo.quiet
     def visualize(self, printName=''):
         w = self.w
@@ -263,30 +284,15 @@ class topModel(object):
         canvas.Divide(5,2,0,0)
         canvas.Print(printName+'[')
 
-        def expected_histogram(pdfname, expect=0):
-            print pdfname,expect
-            mod = w.pdf(pdfname)
-            if not mod:
-                w.Print()
-                exit()
-            args = ','.join(self.observables)
-            exp = mod.generateBinned(w.argSet(args), expect, True, False)
-            hist = exp.createHistogram(args, 25, 5)
-            hist.SetName(pdfname+'genHist')
-            return hist
-
         for j,lep in enumerate(['el','mu']):
-            data = w.data('data') if not hasattr(self,'altData') else self.altData
-            tmp = next(d for d in data.split(w.arg('channel')) if d.GetName()==lep)
-            dhist = tmp.createHistogram('altaData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(25,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(5,-1,1)))
-            
-            hist = expected_histogram('model_'+lep)
+            dhist = self.data_hist(lep)
+            hist = self.expected_histogram('model_'+lep)
 
             print self.channels[lep].samples.keys()
-            hists = dict([(s, expected_histogram(lep+'_'+s+('_both' if s in ['wj','st'] else '_symm' if s=='dy' else ''), 
+            hists = dict([(s, self.expected_histogram(lep+'_'+s+('_both' if s in ['wj','st'] else '_symm' if s=='dy' else ''), 
                                                  w.arg('expect_%s_%s'%(lep,s)).getVal()))
                      for s in self.channels[lep].samples if s not in ['data']])
-            hists['mj'] = expected_histogram(lep+'_mj', w.arg('expect_%s_mj'%lep).getVal())
+            hists['mj'] = self.expected_histogram(lep+'_mj', w.arg('expect_%s_mj'%lep).getVal())
 
             stack = [('tt',),('wj',),('mj',), ('dy','st')][::-1]
             colors = [r.kViolet,r.kGreen+1,r.kRed,r.kGray][::-1]
@@ -299,8 +305,7 @@ class topModel(object):
                 stackers.append(h)
 
 
-            def proj(h):
-                return [lib.symmAnti(h.ProjectionX( h.GetName()+'x%d'%i,i+1,i+1)) for i in range(5)]
+            def proj(h): return [lib.symmAnti(hist) for hist in self.proj(h)]
             model = proj(hist)
             data = proj(dhist)
             comps = [proj(h) for h in stackers]
@@ -339,3 +344,11 @@ class topModel(object):
         print printName, 'written'
 
         return
+
+
+    def Ac_raw(self, channel, model=None):
+        hist = (self.data_hist(channel) if not model 
+                else self.expected_histogram(model + '_'+channel))
+
+        return [lib.asymmetry(h)[0] for h in self.proj(hist)]
+

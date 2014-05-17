@@ -140,8 +140,9 @@ class measurement(object):
 
         truth = {'Ac': Ac_y_ttalt if genNames['XL'][3:] in pars['signal'] else Ac_phi_ttalt}
         altItems = ['expect_%s_ttalt'%s for s in ['el','mu']]
-        #for item in (set(fit.modelItems()+altItems)-set(fit.altmodelNonItems())): truth[item] = wGen.arg(item).getVal()
         for item in (set(fit.modelItems()+altItems)-set()): truth[item] = wGen.arg(item).getVal()
+        truth.update({'Ac_raw_el_model':model.Ac_raw('el','altmodel'),
+                      'Ac_raw_mu_model':model.Ac_raw('mu','altmodel')})
 
         mcstudy = r.RooMCStudy(wGen.pdf('altmodel'),
                                wGen.argSet(','.join(model.observables+['channel'])),

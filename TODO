@@ -2,14 +2,32 @@
 
 * lumi_dep
 
-* ensemble tests for subselections
-
 * produce results plots with fitted symmetric and antisymmetric components (in progress: still need axis labels)
 -- axis labels
 -- individual antisymmetric components
 
-* fit XT (XL) asymmetry independently from inclusive ttbar diff. xs.
-* fnal batch
+--------------------------------------------------------------
 
-* calibrate to MC@NLO / MADGRAPH / BSM
 
+0th possible source of bias : bugs
+2nd possible source of bias : difference in sample composition
+
+(2) Fix the fractions of the model to those observed in MC@NLO: do we get unbiased asymmetry?  1D
+(2) Remove all backgrounds (100 % ttbar purity) and try that.
+
+alternatively
+
+(2) Manually remove all but qqbar from POWHEG and MC@NLO and measure
+    Manually remove gg from POWHEG and MC@NLO and measure
+
+fit to 1-D distribution in XL with no background, with calibrations
+fit to calibration tridiscriminant only, with calibrations
+
+Add to measurement row:
+* fit quality metric (chi2)
+
+* qq only
+* qq + gg
+* fix ttbar fractions
+* qq + gg + {bg}
+* fixed sample compositions, fitting only for asymmetry
