@@ -68,6 +68,9 @@ if __name__ == '__main__':
             if enschunks: stack.extend(["./start.py --X%s --partition %s --ensembles %s --ensSlice "%(letter, part, e) + (','.join(str(s_) for s_ in s) if type(s)==list else "%d:%d"%s) for s in enschunks for e in ensembles])
             if calchunks: stack.extend(["./start.py --X%s --partition %s --calibrations %s --calSlice "%(letter, part, e) + (','.join(str(s_) for s_ in s) if type(s)==list else "%d:%d"%s) for s in calchunks for e in calibrations])
             if not any([syschunks,tmpchunks,enschunks,calchunks]): stack.append("./start.py --X%s --partition %s"%(letter,part))
+        print options.onlyel , options.onlymu
+        if options.onlyel or options.onlymu:
+            stack = [c + (" --onlyel" if options.onlyel else ' --onlymu') for c in stack]
         print '\n'.join(stack)
         batch.batch(stack, site=options.site)
     else:

@@ -271,7 +271,14 @@ class topModel(object):
 
     @staticmethod
     def proj(h):
-        return [h.ProjectionX( h.GetName()+'x%d'%i,i+1,i+1) for i in range(5)]
+        return (#[h.ProjectionX(h.GetName() + "x")] +
+                [h.ProjectionX( h.GetName()+'x%d'%i,i+1,i+1) for i in range(5)])
+
+    def Ac_raw(self, channel, model=None):
+        hist = (self.data_hist(channel) if not model 
+                else self.expected_histogram(model + '_'+channel))
+
+        return [lib.asymmetry(h)[0] for h in self.proj(hist)]
 
     @roo.quiet
     def visualize(self, printName=''):
@@ -348,10 +355,4 @@ class topModel(object):
 
         return
 
-
-    def Ac_raw(self, channel, model=None):
-        hist = (self.data_hist(channel) if not model 
-                else self.expected_histogram(model + '_'+channel))
-
-        return [lib.asymmetry(h)[0] for h in self.proj(hist)]
 
