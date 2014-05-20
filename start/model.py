@@ -188,6 +188,9 @@ class topModel(object):
             altData.SetName('data')
             roo.wimport(w, altData)
             self.altData = altData
+            for d in altData.split(w.arg('channel')):
+                d.SetName('data_'+d.GetName())
+                roo.wimport(w, d)
             return
         obs_ = w.argSet(','.join(self.observables))
         obs = r.RooArgList(obs_)

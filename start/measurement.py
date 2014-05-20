@@ -53,7 +53,7 @@ class measurement(object):
 
         if calibrations:
             pars = systematics.central()
-            pars.update({'signal':signal, 'R0_':R0_, 'log':log})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only})
             for calPars in calibration_specs():
                 if calPars['which'] not in calibrations: continue
                 calPars.update({'calSlice':calSlice})
@@ -63,6 +63,7 @@ class measurement(object):
             if sys['label'] not in evalSystematics: continue
             pars = systematics.central()
             pars.update(sys)
+            pars.update({'only':only})
             fname = self.outNameBase +'_sys_'+ sys['label'] + '.log'
             with open(fname, 'w') as log:
                 f = fit(signal=signal, R0_=R0_,
