@@ -82,7 +82,7 @@ class measurement(object):
 
         for item in fit.modelItems(): truth[item] = wGen.arg(item).getVal()
 
-        mcstudy = r.RooMCStudy(wGen.pdf('model'),
+        mcstudy = r.RooMCStudy(wGen.pdf(pars['nobg'] + 'model'),
                                wGen.argSet(','.join(self.central.model.observables+['channel'])),
                                r.RooFit.Binned(True),
                                r.RooFit.Extended(True)
