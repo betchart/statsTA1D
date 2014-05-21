@@ -21,6 +21,7 @@ parser.add_option("--batch", dest='batch', default=False, action='store_true', h
 parser.add_option("--site", dest='site', default=None, metavar='ic', help='batch site')
 parser.add_option("--chunk", dest='chunk', default=10, metavar='N', type="int", help='number of jobs in a batch chunk')
 parser.add_option("--nobg", dest='nobg', default=False, action='store_true',  help='do not include background samples in model')
+parser.add_option("--rebin", dest='rebin', default=False, action='store_true',  help='rebin the asymmetry observable')
 
 def opts() :
     options,args = parser.parse_args()

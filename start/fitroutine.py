@@ -13,7 +13,7 @@ class fit(object):
     def __init__(self, label, signal, R0_,
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
-                 log=None, fixSM=False, altData=None, lumiFactor=1.0, only="", nobg=""):
+                 log=None, fixSM=False, altData=None, lumiFactor=1.0, only="", nobg="", rebin=False):
 
         np.random.seed(1981)
         for item in ['label','quiet','fixSM','only','nobg'] : setattr(self,item,eval(item))
@@ -27,7 +27,7 @@ class fit(object):
                           inputs.channel_data(lep, part, tag, signal, sigPre,
                                               "R%02d" % (R0_ + dirIncrement),
                                               genDirPre, prePre=prePre, templateID=templateID,
-                                              d_wbb = d_wbb))
+                                              d_wbb = d_wbb, rebin=rebin))
                          for lep in ['el', 'mu']
                          for part in ['top', 'QCD']
                          ])
@@ -43,7 +43,7 @@ class fit(object):
                 lep,part = lepPart
                 chan.subtract(inputs.channel_data(lep,part,tag,signal,sigPre,
                                                   "R%02d" % (diffR0_ + dirIncrement),
-                                                  genDirPre, prePre = prePre ))
+                                                  genDirPre, prePre = prePre, rebin=rebin ))
 
         print "###", label
         print>>self.log, "###", label

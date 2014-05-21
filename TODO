@@ -31,3 +31,29 @@ Add to measurement row:
 * fix ttbar fractions
 * qq + gg + {bg}
 * fixed sample compositions, fitting only for asymmetry
+
+
+
+# Hypothesis: 
+# 
+# * The bias is due to the difference between samples (POWHEG and
+# calibration sample) of the ratio of the reconstructed asymmetry in the
+# middle bin of the tridiscriminant to the true asymmetry.
+# 
+# How to test it:
+# 
+# * There are two numbers for that ratio in any given ttbar sample, one
+#   from the e+jets channel, and one from the mu+jets channel.
+# 
+# * It will be cleaner to test the hypothesis first on only_(el|mu)
+-- tested, can't explain biases
+
+# Remove Background
+-- still biases unexplained by ratio hypothesis
+
+# Rebin
+-- results closer to expected, but still under amplitude.
+-- shape match is poor
+
+# No Tridiscriminant
+

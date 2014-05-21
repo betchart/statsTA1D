@@ -14,16 +14,18 @@ class measurement(object):
                  doVis=False, evalSystematics=[],
                  ensembles=None, ensSlice=(None,None),
                  calibrations=None, calSlice=(None,None),
-                 outDir='output/', templateID=None, only="", nobg=""):
+                 outDir='output/', templateID=None, only="", nobg="", rebin=False):
         os.system('mkdir -p %s' % outDir)
         self.doVis = doVis
         self.outNameBase = (outDir + 
-                            '_'.join(label.split(',')) + only + ('_%s'%nobg if nobg else '') +
+                            '_'.join(label.split(',')) + only + 
+                            ('_%s'%nobg if nobg else '') +
+                            ('_rebin' if rebin else '') +
                             ('_t%03d'%templateID if templateID!=None else ''))
 
         with open(self.outNameBase + 'SM.log', 'w') as log:
             pars = systematics.central()
-            pars['only'] = only
+            pars.update({'only':only, 'rebin':rebin})
             # pars['nobg'] = nobg if not any([ensembles,calibrations]) else ""
             pars['label'] += 'SM'
             self.SM = fit(signal=signal, R0_=R0_, log=log,
@@ -32,8 +34,7 @@ class measurement(object):
 
         with open(self.outNameBase + '.log', 'w') as log:
             pars = systematics.central()
-            pars['log'] = log
-            pars['only'] = only
+            pars.update({'log':log, 'only':only, 'rebin':rebin})
             # pars['nobg'] = nobg if not any([ensembles,calibrations]) else ""
             if templateID!=None: pars['label'] = 'T%03d'%templateID
             self.central = fit(signal=signal, R0_=R0_, templateID=templateID, **pars)
@@ -47,7 +48,7 @@ class measurement(object):
 
         if ensembles: 
             pars = systematics.central()
-            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg, 'rebin':rebin})
             for ensPars in ensemble_specs():
                 if ensPars['label'] not in ensembles: continue
                 ensPars.update({'ensSlice':ensSlice})
@@ -55,7 +56,7 @@ class measurement(object):
 
         if calibrations:
             pars = systematics.central()
-            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg, 'rebin':rebin})
             for calPars in calibration_specs():
                 if calPars['which'] not in calibrations: continue
                 calPars.update({'calSlice':calSlice})
@@ -65,7 +66,7 @@ class measurement(object):
             if sys['label'] not in evalSystematics: continue
             pars = systematics.central()
             pars.update(sys)
-            pars.update({'only':only})
+            pars.update({'only':only,'rebin':rebin})
             fname = self.outNameBase +'_sys_'+ sys['label'] + '.log'
             with open(fname, 'w') as log:
                 f = fit(signal=signal, R0_=R0_,
@@ -111,7 +112,8 @@ class measurement(object):
             'genDirPre':pars['genDirPre'],
             'prePre':prePre,
             'templateID':None,
-            'sampleList': sampleList
+            'sampleList': sampleList,
+            'rebin':pars['rebin']
             }
         alt_channels = dict( [ ((lep,part), inputs.channel_data(lep, part, **args))
                                for lep in ['el','mu'] for part in ['top','QCD']] )

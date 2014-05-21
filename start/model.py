@@ -19,6 +19,8 @@ class topModel(object):
         channels_qcd = dict((L + 'qcd', channelDict[(L, 'QCD')]) for L in leptons)
         gen = channelDict['gen']
 
+        self.nBinsX = channels['el'].samples['tt'].datasX[0].GetNbinsX()
+
         if not w: w = r.RooWorkspace('Workspace')
 
         for item in ['gen', 'channels', 'channels_qcd','quiet',
@@ -250,9 +252,9 @@ class topModel(object):
         mod = w.pdf('model_%s'%lep)
         dhist = unqueue(self.channels[lep].samples['data'].datas[0], True)
         exp = mod.generateBinned(w.argSet(','.join(self.observables)), 0, True, False)
-        hist = exp.createHistogram(','.join(self.observables), 25, 5)
+        hist = exp.createHistogram(','.join(self.observables), self.nBinsX, 5)
         chi2 = 5*[0]
-        for iX in range(25):
+        for iX in range(self.nBinsX):
             for iY in range(5):
                     ibin = hist.GetBin(iX+1,iY+1)
                     P = hist.GetBinContent(ibin)
@@ -267,7 +269,7 @@ class topModel(object):
         mod = w.pdf(pdfname)
         args = ','.join(self.observables)
         exp = mod.generateBinned(w.argSet(args), expect, True, False)
-        hist = exp.createHistogram(args, 25, 5)
+        hist = exp.createHistogram(args, self.nBinsX, 5)
         hist.SetName(pdfname+'genHist')
         return hist
 
@@ -275,7 +277,7 @@ class topModel(object):
         w = self.w
         data = w.data('data') if not hasattr(self,'altData') else self.altData
         tmp = next(d for d in data.split(w.arg('channel')) if d.GetName()==lep)
-        dhist = tmp.createHistogram('altaData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(25,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(5,-1,1)))
+        dhist = tmp.createHistogram('altaData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(self.nBinsX,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(5,-1,1)))
         return dhist
 
 

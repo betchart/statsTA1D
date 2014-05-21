@@ -58,13 +58,14 @@ class channel_data(object):
 
     def __init__(self, lepton, partition, tag = 'ph_sn_jn_20',
                  signal="", sigPrefix="", dirPrefix="R04", genDirPre="R01",
-                 prePre = False, templateID=None, d_wbb=0, sampleList=[], rename=True):
+                 prePre = False, templateID=None, d_wbb=0, sampleList=[], rename=True, rebin=False):
         filePattern="data/stats_%s_%s_%s.root"
         tfile = r.TFile.Open(filePattern % (partition, lepton, tag))
         self.templateID = templateID
         self.lepton = lepton
         self.lumi = tfile.Get('lumiHisto/data').GetBinContent(1)
         self.lumi_sigma = 0.05
+        self.rebin = rebin
 
         def full(pf) :
             return next((ky.GetName() + '/' for ky in tfile.GetListOfKeys()
@@ -101,6 +102,7 @@ class channel_data(object):
 
         data = get('/' + s,paths).Clone(self.lepton + '_' + s)
         data.SetDirectory(0)
+        if self.rebin: data.RebinX(5)
         if s not in ['data'] or 'QCD' in tfile.GetName() : self.jiggle(data)
 
         xs = tfile.Get('xsHisto/' + s).GetBinContent(1) if s != 'data' else None
