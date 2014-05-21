@@ -25,7 +25,7 @@ class topModel(object):
                      'observables', 'w']: setattr(self, item, eval(item))
 
         for item in ['xs_lumi', 'efficiencies', 'shapes', 'qcd', 'asymmetry',
-                     'model', 'expressions']: getattr(self, 'import_' + item)(w)
+                     'model', 'expressions','nobg_model']: getattr(self, 'import_' + item)(w)
 
         for item in ['d_lumi', 'd_xs_dy', 'd_xs_st']: w.arg(item).setConstant()
 
@@ -125,18 +125,23 @@ class topModel(object):
             if part not in whichs:
                 whichs[part] = dict((i, '_both') for i in ['wj', 'st'])
                 whichs[part].update({'tt': ''})
-        whichs[''].update({'dy': '_symm'})
+            if 'dy' in whichs[part]:
+                whichs[part].update({'dy': '_symm'})
+        if not self.quiet:
+            print 'name:', name, '|', whichs
 
-        [roo.factory(w, "SUM::%s_mj( expect_%sqcd_data * %sqcd_data_both, %s )" %
-                     (name+lepton, lepton, lepton,
-                      ','.join(['expect_%s_%s * %s_%s%s' %
-                                (lepton + 'qcd', key, lepton + 'qcd', key, value)
-                                for key, value in whichs['qcd'].items()])))
-         for lepton in self.channels]
+        if whichs['qcd']:
+            [roo.factory(w, "SUM::%s_mj( expect_%sqcd_data * %sqcd_data_both, %s )" %
+                         (name+lepton, lepton, lepton,
+                          ','.join(['expect_%s_%s * %s_%s%s' %
+                                    (lepton + 'qcd', key, lepton + 'qcd', key, value)
+                                    for key, value in whichs['qcd'].items()])))
+             for lepton in self.channels]
 
-        [roo.factory(w, "SUM::%smodel_%s( expect_%sqcd_data * %sqcd_data_both, %s )" %
-                     (name,lepton, lepton, lepton,
-                      ','.join(['expect_%s_%s * %s_%s%s' %
+        [roo.factory(w, "SUM::%smodel_%s( %s )" %
+                     (name,lepton,
+                      ','.join((['expect_%sqcd_data * %sqcd_data_both' % (lepton, lepton)] if whichs['qcd'] else []) + 
+                               ['expect_%s_%s * %s_%s%s' %
                                 (lepton + part, key, lepton + part, key, value)
                                 for part, which in whichs.items()
                                 for key, value in which.items()
@@ -147,7 +152,12 @@ class topModel(object):
                     (name, ', '.join("%s=%smodel_%s" %
                                      (lepton, name, lepton) for lepton in self.channels)))
 
-    def import_alt_model(self, channelDict):
+
+    def import_nobg_model(self, w):
+        self.import_model(w, whichs={'':{'tt':''},'qcd':dict()}, name="nobg")
+
+
+    def import_alt_model(self, channelDict, nobg=""):
         w = self.w
 
         sample = "ttalt"
@@ -168,9 +178,9 @@ class topModel(object):
          for lepton, channel in channels.items()
          for sample, data in channel.samples.items()]
 
-        self.import_model(w, whichs={'':dict((i, '_both')
-                                             for i in ['dy', 'wj', 'st', 'ttalt'])},
-                          name="alt")
+        whichs={'':dict((i, '_both') for i in ['dy', 'wj', 'st', 'ttalt'][-1 if nobg else 0:])}
+        if nobg: whichs.update({"qcd":{}})
+        self.import_model(w, whichs=whichs, name="alt" + nobg)
 
     def import_expressions(self, w):
         [roo.factory(w, "sum::expect_%s_notqcd(%s)" %
@@ -281,7 +291,7 @@ class topModel(object):
         return [lib.asymmetry(h)[0] for h in self.proj(hist)]
 
     @roo.quiet
-    def visualize(self, printName=''):
+    def visualize(self, printName='', nobg=""):
         w = self.w
         titles = ['X_{%s}'%self.observables[0],'#Delta']
         for v,t in zip(self.observables,titles) :
@@ -296,9 +306,9 @@ class topModel(object):
 
         for j,lep in enumerate(['el','mu']):
             dhist = self.data_hist(lep)
-            hist = self.expected_histogram('model_'+lep)
-
-            print self.channels[lep].samples.keys()
+            hist = self.expected_histogram(nobg + 'model_'+lep)
+            if not self.quiet:
+                print self.channels[lep].samples.keys()
             hists = dict([(s, self.expected_histogram(lep+'_'+s+('_both' if s in ['wj','st'] else '_symm' if s=='dy' else ''), 
                                                  w.arg('expect_%s_%s'%(lep,s)).getVal()))
                      for s in self.channels[lep].samples if s not in ['data']])
@@ -307,7 +317,7 @@ class topModel(object):
             stack = [('tt',),('wj',),('mj',), ('dy','st')][::-1]
             colors = [r.kViolet,r.kGreen+1,r.kRed,r.kGray][::-1]
             stackers = []
-            for s,c in zip(stack,colors):
+            for s,c in zip(stack,colors)[-1 if nobg else 0:]:
                 h = hists[s[0]]
                 for n in s[1:]: h.Add(hists[n])
                 h.SetFillColor(c)
