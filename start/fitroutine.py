@@ -13,10 +13,10 @@ class fit(object):
     def __init__(self, label, signal, R0_,
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
-                 log=None, fixSM=False, altData=None, lumiFactor=1.0, only=""):
+                 log=None, fixSM=False, altData=None, lumiFactor=1.0, only="", nobg=""):
 
         np.random.seed(1981)
-        for item in ['label','quiet','fixSM','only'] : setattr(self,item,eval(item))
+        for item in ['label','quiet','fixSM','only','nobg'] : setattr(self,item,eval(item))
         self.log = log if log else sys.stdout
         if type(R0_) == tuple:
             diffR0_ = R0_[1]
@@ -112,7 +112,7 @@ class fit(object):
     @roo.quiet
     def minimize(self):
         w = self.model.w
-        nll = w.pdf('model'+self.only).createNLL(w.data('data'+self.only), *self.fitArgs[:-1])
+        nll = w.pdf(self.nobg+'model'+self.only).createNLL(w.data('data'+self.only), *self.fitArgs[:-1])
         minu = r.RooMinuit(nll)
         minu.setPrintLevel(-1)
         minu.setNoWarn()

@@ -14,16 +14,17 @@ class measurement(object):
                  doVis=False, evalSystematics=[],
                  ensembles=None, ensSlice=(None,None),
                  calibrations=None, calSlice=(None,None),
-                 outDir='output/', templateID=None, only=""):
+                 outDir='output/', templateID=None, only="", nobg=""):
         os.system('mkdir -p %s' % outDir)
         self.doVis = doVis
         self.outNameBase = (outDir + 
-                            '_'.join(label.split(',')) + only +
+                            '_'.join(label.split(',')) + only + ('_%s'%nobg if nobg else '') +
                             ('_t%03d'%templateID if templateID!=None else ''))
 
         with open(self.outNameBase + 'SM.log', 'w') as log:
             pars = systematics.central()
             pars['only'] = only
+            # pars['nobg'] = nobg if not any([ensembles,calibrations]) else ""
             pars['label'] += 'SM'
             self.SM = fit(signal=signal, R0_=R0_, log=log,
                           fixSM=True, **pars)
@@ -33,6 +34,7 @@ class measurement(object):
             pars = systematics.central()
             pars['log'] = log
             pars['only'] = only
+            # pars['nobg'] = nobg if not any([ensembles,calibrations]) else ""
             if templateID!=None: pars['label'] = 'T%03d'%templateID
             self.central = fit(signal=signal, R0_=R0_, templateID=templateID, **pars)
             self.central.model.print_n(log)
@@ -45,7 +47,7 @@ class measurement(object):
 
         if ensembles: 
             pars = systematics.central()
-            pars.update({'signal':signal, 'R0_':R0_, 'log':log})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg})
             for ensPars in ensemble_specs():
                 if ensPars['label'] not in ensembles: continue
                 ensPars.update({'ensSlice':ensSlice})
@@ -53,7 +55,7 @@ class measurement(object):
 
         if calibrations:
             pars = systematics.central()
-            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg})
             for calPars in calibration_specs():
                 if calPars['which'] not in calibrations: continue
                 calPars.update({'calSlice':calSlice})
@@ -94,7 +96,7 @@ class measurement(object):
                 pars['log']=log
                 f = fit(altData=alt, **pars)
             f.ttreeWrite(self.outNameBase + pars['label'] + '.root', truth)
-            if self.doVis: f.model.visualize(self.outNameBase + pars['label'] + '.pdf')
+            if self.doVis: f.model.visualize(self.outNameBase + pars['label'] + '.pdf', nobg=pars["nobg"])
 
     @roo.quiet
     def calibrations(self, pars, which='mn', calSlice=(None,None), N=1000, label='', **kwargs):
@@ -128,7 +130,7 @@ class measurement(object):
         tfile.Close()
 
         model = self.central.model
-        model.import_alt_model(alt_channels)
+        model.import_alt_model(alt_channels, pars['nobg'])
         wGen = model.w
 
         # bring xs_ttalt to the most consistant value possible
@@ -142,10 +144,10 @@ class measurement(object):
         truth = {'Ac': Ac_y_ttalt if genNames['XL'][3:] in pars['signal'] else Ac_phi_ttalt}
         altItems = ['expect_%s_ttalt'%s for s in ['el','mu']]
         for item in (set(fit.modelItems()+altItems)-set()): truth[item] = wGen.arg(item).getVal()
-        truth.update({'Ac_raw_el_model':model.Ac_raw('el','altmodel'),
-                      'Ac_raw_mu_model':model.Ac_raw('mu','altmodel')})
+        truth.update({'Ac_raw_el_model':model.Ac_raw('el','alt%smodel'%pars['nobg']),
+                      'Ac_raw_mu_model':model.Ac_raw('mu','alt%smodel'%pars['nobg'])})
 
-        mcstudy = r.RooMCStudy(wGen.pdf('altmodel'),
+        mcstudy = r.RooMCStudy(wGen.pdf('alt%smodel'%pars['nobg']),
                                wGen.argSet(','.join(model.observables+['channel'])),
                                r.RooFit.Binned(True),
                                r.RooFit.Extended(True)
@@ -159,4 +161,4 @@ class measurement(object):
                 pars['log']=log
                 f = fit(altData=alt, **pars)
             f.ttreeWrite(self.outNameBase + pars['label'] + '.root', truth)
-            if self.doVis: f.model.visualize(self.outNameBase + pars['label'] + '.pdf')
+            if self.doVis: f.model.visualize(self.outNameBase + pars['label'] + '.pdf', nobg=pars['nobg'])
