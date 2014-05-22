@@ -68,7 +68,7 @@ if __name__ == '__main__':
             if enschunks: stack.extend(["./start.py --X%s --partition %s --ensembles %s --ensSlice "%(letter, part, e) + (','.join(str(s_) for s_ in s) if type(s)==list else "%d:%d"%s) for s in enschunks for e in ensembles])
             if calchunks: stack.extend(["./start.py --X%s --partition %s --calibrations %s --calSlice "%(letter, part, e) + (','.join(str(s_) for s_ in s) if type(s)==list else "%d:%d"%s) for s in calchunks for e in calibrations])
             if not any([syschunks,tmpchunks,enschunks,calchunks]): stack.append("./start.py --X%s --partition %s"%(letter,part))
-        for item in ['onlyel','onlymu','nobg','rebin']:
+        for item in ['onlyel','onlymu','nobg','rebin','no3D']:
             if getattr(options,item):
                 stack = [' --'.join([c,item]) for c in stack]
         print '\n'.join(stack)
@@ -87,7 +87,8 @@ if __name__ == '__main__':
                            'templateID':tID,
                            'only':'_mu' if options.onlymu else '_el' if options.onlyel else '',
                            'nobg':'nobg' if options.nobg else '',
-                           'rebin':options.rebin
+                           'rebin':options.rebin,
+                           'no3D':options.no3D
                        })
                 print mp
                 if '_CONDOR_SCRATCH_DIR' in os.environ:

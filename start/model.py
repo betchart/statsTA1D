@@ -20,6 +20,7 @@ class topModel(object):
         gen = channelDict['gen']
 
         self.nBinsX = channels['el'].samples['tt'].datasX[0].GetNbinsX()
+        self.nBinsY = channels['el'].samples['tt'].datasY[0].GetNbinsX()
 
         if not w: w = r.RooWorkspace('Workspace')
 
@@ -252,10 +253,10 @@ class topModel(object):
         mod = w.pdf('model_%s'%lep)
         dhist = unqueue(self.channels[lep].samples['data'].datas[0], True)
         exp = mod.generateBinned(w.argSet(','.join(self.observables)), 0, True, False)
-        hist = exp.createHistogram(','.join(self.observables), self.nBinsX, 5)
-        chi2 = 5*[0]
+        hist = exp.createHistogram(','.join(self.observables), self.nBinsX, self.nBinsY)
+        chi2 = self.nBinsY*[0]
         for iX in range(self.nBinsX):
-            for iY in range(5):
+            for iY in range(self.nBinsY):
                     ibin = hist.GetBin(iX+1,iY+1)
                     P = hist.GetBinContent(ibin)
                     Q = dhist.GetBinContent(ibin)
@@ -269,7 +270,7 @@ class topModel(object):
         mod = w.pdf(pdfname)
         args = ','.join(self.observables)
         exp = mod.generateBinned(w.argSet(args), expect, True, False)
-        hist = exp.createHistogram(args, self.nBinsX, 5)
+        hist = exp.createHistogram(args, self.nBinsX, self.nBinsY)
         hist.SetName(pdfname+'genHist')
         return hist
 
@@ -277,14 +278,14 @@ class topModel(object):
         w = self.w
         data = w.data('data') if not hasattr(self,'altData') else self.altData
         tmp = next(d for d in data.split(w.arg('channel')) if d.GetName()==lep)
-        dhist = tmp.createHistogram('altaData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(self.nBinsX,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(5,-1,1)))
+        dhist = tmp.createHistogram('altaData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(self.nBinsX,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(self.nBinsY,-1,1)))
         return dhist
 
 
     @staticmethod
     def proj(h):
         return (#[h.ProjectionX(h.GetName() + "x")] +
-                [h.ProjectionX( h.GetName()+'x%d'%i,i+1,i+1) for i in range(5)])
+                [h.ProjectionX( h.GetName()+'x%d'%i,i+1,i+1) for i in range(h.GetNbinsY())])
 
     def Ac_raw(self, channel, model=None):
         hist = (self.data_hist(channel) if not model 
@@ -303,7 +304,7 @@ class topModel(object):
         r.setTDRStyle()
         r.TGaxis.SetMaxDigits(4)
         canvas = r.TCanvas()
-        canvas.Divide(5,2,0,0)
+        canvas.Divide(self.nBinsY,2,0,0)
         canvas.Print(printName+'[')
 
         for j,lep in enumerate(['el','mu']):
@@ -331,11 +332,11 @@ class topModel(object):
             model = proj(hist)
             data = proj(dhist)
             comps = [proj(h) for h in stackers]
-            hstack = [r.THStack('stack%d'%i,'') for i in range(5)]
+            hstack = [r.THStack('stack%d'%i,'') for i in range(self.nBinsY)]
             maximum = 1.1 * max(d[0].GetMaximum() for d in data)
             amaximum = 1.7 * max([max(abs(h[1].GetMaximum()),abs(h[1].GetMinimum())) for hist in [data,model] for h in hist])
             antis = []
-            for i in range(5):
+            for i in range(self.nBinsY):
                 canvas.cd(i+1)
                 for c in comps: 
                     hstack[i].Add(c[i][0])
@@ -348,7 +349,7 @@ class topModel(object):
                 hstack[i].Draw('hist same')
                 data[i][0].Draw('same')
 
-                canvas.cd(i+6)
+                canvas.cd(i+1+self.nBinsY)
                 data[i][1].SetMinimum(-amaximum)
                 data[i][1].SetMaximum(amaximum)
                 data[i][1].Draw()
