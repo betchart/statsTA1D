@@ -14,7 +14,13 @@ class fit(object):
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
                  log=None, fixSM=False, altData=None, lumiFactor=1.0,
-                 only="", nobg="", rebin=False, no3D=False, twoStage=False):
+                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}):
+
+        parNames = ['label','signal','R0_','d_lumi','d_xs_dy','d_xs_st','tag','genPre','sigPre',
+                    'dirIncrement','genDirPre','d_wbb','quiet','templateID','defaults','log','fixSM',
+                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage']
+
+        self.pars = dict([(p,eval(p)) for p in parNames])
 
         np.random.seed(1981)
         for item in ['label','quiet','fixSM','only','nobg'] : setattr(self,item,eval(item))
@@ -28,7 +34,7 @@ class fit(object):
                           inputs.channel_data(lep, part, tag, signal, sigPre,
                                               "R%02d" % (R0_ + dirIncrement),
                                               genDirPre, prePre=prePre, templateID=templateID,
-                                              d_wbb = d_wbb, rebin=rebin, no3D=no3D))
+                                              d_wbb = d_wbb, rebin=rebin, no3D=no3D, only3D=(twoStage and fixSM)))
                          for lep in ['el', 'mu']
                          for part in ['top', 'QCD']
                          ])
@@ -57,7 +63,12 @@ class fit(object):
                         r.RooFit.PrintLevel(-1)]
         self.model.import_data(altData)
 
+        for k,v in fixedValues.items():
+            self.model.w.arg(k).setVal(v)
+            self.model.w.arg(k).setConstant()
+
         if fixSM: self.doSM()
+        elif twoStage: self.doTwoStage()
         else: self.doFit()
 
     @roo.quiet
@@ -69,6 +80,25 @@ class fit(object):
         minu.setNoWarn()
         minu.setStrategy(2)
         minu.migrad()
+
+    def doTwoStage(self):
+        parsSM = dict(self.pars)
+        parsSM.update({'fixSM':True})
+        sm = fit(**parsSM)
+
+        values = ['d_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']
+        fixedValues = dict([(v,sm.model.w.arg(v).getVal()) for v in values])
+        
+        parsA = dict(self.pars)
+        parsA.update({'no3D':True, 'fixedValues':fixedValues, 'twoStage':False})
+        self.secondStage = fit(**parsA)
+
+        for v in ['alpha']+values:
+            self.model.w.arg(v).setVal(self.secondStage.model.w.arg(v).getVal())
+
+        transfer = ['profVal','profErr','scale','fit','sigma','profPLL','pll','points','pllPoints','parbABC','NLL','fitstatus']
+        for item in transfer:
+            setattr(self, item, getattr(self.secondStage, item))
 
     @roo.quiet
     def doFit(self):

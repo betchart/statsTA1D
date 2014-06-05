@@ -66,7 +66,7 @@ class measurement(object):
             if sys['label'] not in evalSystematics: continue
             pars = systematics.central()
             pars.update(sys)
-            pars.update({'only':only,'rebin':rebin, 'twoStage'})
+            pars.update({'only':only,'rebin':rebin, 'twoStage':twoStage})
             fname = self.outNameBase +'_sys_'+ sys['label'] + '.log'
             with open(fname, 'w') as log:
                 f = fit(signal=signal, R0_=R0_,
