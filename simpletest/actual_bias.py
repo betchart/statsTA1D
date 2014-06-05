@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 from model import simpleModel
+from fivebin import fivebin
+import math
 import lib
 import ROOT as r
-r.gROOT.SetBatch(0)
+r.gROOT.SetBatch(1)
+r.gStyle.SetOptStat(0)
+r.gStyle.SetPalette(55)
+r.gStyle.SetPaintTextFormat(".2f")
 
 class hists(dict):
     def __init__(self, lep="el"):
@@ -40,6 +45,7 @@ if __name__=="__main__":
     for lep in ['el','mu']:
         print lep
         lep_hists = hists(lep)
+
         m = simpleModel(lep_hists['ph'])
         for k,v in sorted(lep_hists.items()):
             m.import_data(v, k)
@@ -51,3 +57,46 @@ if __name__=="__main__":
             print '\t', "% .2f" % (100*Ac_meas),
             print 3*'\t', "% .2f" % (Ac_meas / Ac)
 
+
+        pars = dict(zip(['middle','central','ain','aout'], classify5(lep_hists['ph'])))
+        pars['N'] = 10000
+        h = r.TH2D('ph_symm_mods','log (A_{meas} / A_{true});log(c/c_{0});log[(m/c) / (m_{0}/c_{0})]', 11, -0.2, 0.2, 11, -0.2, 0.2)
+        for iC in range(h.GetNbinsX()):
+            for iM in range(h.GetNbinsY()):
+                local_pars = dict(pars)
+                cfactor = math.exp(h.GetXaxis().GetBinCenter(1+iC))
+                mfactor = math.exp(h.GetYaxis().GetBinCenter(1+iM))
+                local_pars.update({'central':pars['central']*cfactor,
+                                   'middle':pars['middle'] * mfactor/cfactor})
+                tmp = fivebin(**local_pars)
+                name = '%s_cm_%d_%d'%(lep, 1+iC, 1+iM)
+                m.import_data(tmp, name)
+                m.minimize(name)
+                Ac = lib.asymmetry(tmp)[0]
+                Ac_meas = m.val('Ac')
+                h.SetBinContent(1+iC, 1+iM, math.log(Ac_meas / Ac))
+                del tmp
+        
+        c = r.TCanvas('c','',600,600)
+        h.Draw('colz text')
+        c.Print('%s_iC_iM.pdf'%lep)
+        del c
+
+        h = r.TH1D('ph_anti_mods','A_{meas} / A_{true};a^{in} / a^{out}', 50, -1, 1)
+        for iX in range(h.GetNbinsX()):
+            local_pars = dict(pars)
+            x = h.GetXaxis().GetBinCenter(1+iX)
+            local_pars.update({'ain':pars['aout'] * x})
+            tmp = fivebin(**local_pars)
+            name = '%s_aa_%d'%(lep, 1+iX)
+            m.import_data(tmp, name)
+            m.minimize(name)
+            Ac = lib.asymmetry(tmp)[0]
+            Ac_meas = m.val('Ac')
+            h.SetBinContent(1+iX, Ac_meas / Ac)
+            del tmp
+        
+        c = r.TCanvas('c','',600,600)
+        h.Draw('text')
+        c.Print('%s_ain_aout.pdf'%lep)
+        del c
