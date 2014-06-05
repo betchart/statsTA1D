@@ -23,6 +23,7 @@ parser.add_option("--chunk", dest='chunk', default=10, metavar='N', type="int", 
 parser.add_option("--nobg", dest='nobg', default=False, action='store_true',  help='do not include background samples in model')
 parser.add_option("--rebin", dest='rebin', default=False, action='store_true',  help='rebin the asymmetry observable')
 parser.add_option("--no3D", dest='no3D', default=False, action='store_true', help='rebin the tridiscriminant down to 1 bin')
+parser.add_option("--twoStage", dest='twoStage', default=False, action='store_true', help='fit sample composition first, then fix for fit of alpha: not compatible with --nobg or --no3D')
 
 def opts() :
     options,args = parser.parse_args()
@@ -33,6 +34,9 @@ def opts() :
         parser.print_help()
         exit()
     if options.onlyel and options.onlymu:
+        parser.print_help()
+        exit()
+    if options.twoStage and (options.no3D or options.nobg):
         parser.print_help()
         exit()
     return options

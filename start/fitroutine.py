@@ -13,7 +13,8 @@ class fit(object):
     def __init__(self, label, signal, R0_,
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
-                 log=None, fixSM=False, altData=None, lumiFactor=1.0, only="", nobg="", rebin=False, no3D=False):
+                 log=None, fixSM=False, altData=None, lumiFactor=1.0,
+                 only="", nobg="", rebin=False, no3D=False, twoStage=False):
 
         np.random.seed(1981)
         for item in ['label','quiet','fixSM','only','nobg'] : setattr(self,item,eval(item))
