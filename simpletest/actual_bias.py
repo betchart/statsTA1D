@@ -40,11 +40,34 @@ def classify5(h):
 
     return (m, c, a_in, a_out)
 
+
+def display(fname, hists):
+    can = r.TCanvas('can','',1200,600)
+    can.Divide(2,1)
+    colors = {'ph':r.kBlack,'mn':r.kBlue,'mg':r.kRed}
+    keep = []
+    for i,(n,c) in enumerate(colors.items()):
+        h = hists[n].Clone(n+'clone')
+        h.Scale(1./h.Integral())
+        h.SetLineColor(c)
+        h.SetTitle(";X_{L}")
+        s,a = lib.symmAnti(h)
+        s.SetMinimum(0)
+        s.SetMaximum(1.2*s.GetMaximum())
+        can.cd(1)
+        s.Draw('same' if i else '')
+        can.cd(2)
+        a.Draw('same' if i else '')
+        keep.append(s)
+        keep.append(a)
+    can.Print(fname)
+
 if __name__=="__main__":
     print '\t'.join(['', "m(%)",'c(%)','ain(%)','aout(%)','','Ac(%)', 'Ac_measure(%)', '', 'slope'])
     for lep in ['el','mu']:
         print lep
         lep_hists = hists(lep)
+        display(lep+'_recohists.pdf', lep_hists)
 
         m = simpleModel(lep_hists['ph'])
         for k,v in sorted(lep_hists.items()):
