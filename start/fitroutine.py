@@ -14,11 +14,11 @@ class fit(object):
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
                  log=None, fixSM=False, altData=None, lumiFactor=1.0,
-                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}):
+                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None):
 
         parNames = ['label','signal','R0_','d_lumi','d_xs_dy','d_xs_st','tag','genPre','sigPre',
                     'dirIncrement','genDirPre','d_wbb','quiet','templateID','defaults','log','fixSM',
-                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage']
+                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt']
 
         self.pars = dict([(p,eval(p)) for p in parNames])
 
@@ -41,10 +41,26 @@ class fit(object):
         channels['gen'] = inputs.channel_data('mu', 'top', tag,
                                               '%s; %s'%(genNameX,genNameY),
                                               sigPrefix = sigPre if dirIncrement in [0,4,5] else '',
-                                              dirPrefix=genDirPre, genDirPre=genDirPre, 
+                                              dirPrefix=genDirPre, genDirPre=genDirPre,
                                               prePre = prePre, sampleList=['tt'], rename=False)
 
+        if alttt:
+            print 'Using %s templates rather than POWHEG' % alttt
+            for lep in ['el', 'mu']:
+                for part in ['top','QCD']:
+                    chan = inputs.channel_data(lep, part, tag, signal, sigPre, "R%02d" %(R0_ + dirIncrement),
+                                               genDirPre, prePre=prePre, rebin=rebin, no3D=no3D,
+                                               only3D=(twoStage and fixSM), sampleList=["calib_%s.pu.sf"%alttt])
+                    channels[(lep,part)].samples['tt'] = chan.samples['ttalt']
+            chan = inputs.channel_data('mu','top', tag,
+                                       '%s_%s'%(genNameX,genNameY),
+                                       sigPrefix = '',
+                                       dirPrefix=genDirPre, genDirPre=genDirPre,
+                                       prePre = prePre, sampleList=["calib_%s.pu.sf"%alttt], fullDir = '')
+            channels['gen'].samples['tt'] = chan.samples['ttalt']
+
         if diffR0_ :
+            assert not alttt
             for lepPart,chan in channels.items():
                 if type(lepPart) != tuple: continue
                 lep,part = lepPart
