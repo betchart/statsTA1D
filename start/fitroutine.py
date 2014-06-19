@@ -97,6 +97,7 @@ class fit(object):
         minu.setStrategy(2)
         minu.migrad()
 
+    @roo.quiet
     def doTwoStage(self):
         parsSM = dict(self.pars)
         parsSM.update({'fixSM':True})
@@ -214,6 +215,7 @@ class fit(object):
     def Ac_raw_mu_model(self): return self.model.Ac_raw('mu', 'model')
     
 
+    @roo.quiet
     def ttree(self, truth={}):
         # Note : ROOT and array.array use opposite conventions for upper/lowercase (un)signed
         #         name     array  ROOT  ROOT_typedef
