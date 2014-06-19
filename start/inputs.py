@@ -58,7 +58,7 @@ class channel_data(object):
 
     def __init__(self, lepton, partition, tag = 'ph_sn_jn_20',
                  signal="", sigPrefix="", dirPrefix="R04", genDirPre="R01",
-                 prePre = False, templateID=None, d_wbb=0, sampleList=[], rename=True, rebin=False, no3D=False, only3D=False):
+                 prePre = False, templateID=None, d_wbb=0, sampleList=[], rename=True, rebin=False, no3D=False, only3D=False, fullDir=None):
         filePattern="data/stats_%s_%s_%s.root"
         tfile = r.TFile.Open(filePattern % (partition, lepton, tag))
         self.templateID = templateID
@@ -73,7 +73,7 @@ class channel_data(object):
             return next((ky.GetName() + '/' for ky in tfile.GetListOfKeys()
                          if pf == ky.GetName().split('_')[0]),
                         '')
-        fullDirName = full(dirPrefix)
+        fullDirName = fullDir if fullDir!=None else full(dirPrefix)
 
         paths = (fullDirName + sigPrefix + signal,
                  fullDirName + signal)

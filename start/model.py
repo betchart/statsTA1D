@@ -10,8 +10,6 @@ class topModel(object):
     @roo.quiet
     def __init__(self, channelDict, var='XL', w=None, quiet=True):
 
-        self.fixFractions = False
-
         leptons = ['el', 'mu']
         observables = [var,'tridiscr']
 
