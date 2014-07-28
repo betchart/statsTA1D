@@ -151,9 +151,9 @@ class channel_data(object):
 
 if __name__ == '__main__':
     import sys
-    from systematics import measurements, partitions, measurement_pars
+    from systematics import partitions, measurement_pars
     i,j = [int(k) for k in sys.argv[1:3]] if len(sys.argv)>2 else (0,0)
-    print '#', measurements[i], partitions[j]
+    print '#', partitions[j]
     
     pars = measurement_pars(partitions[j])
     R0_,diffR0_ = pars['R0_'] if type(pars['R0_'])==tuple else (pars['R0_'],None)
