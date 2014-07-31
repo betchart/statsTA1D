@@ -64,7 +64,7 @@ def systematics():
             {'label': 'as_dn', 'genPre': '055_', 'sigPre': '055_'},
             {'label': 'as_up', 'genPre': '056_', 'sigPre': '056_'},
 
-            {'label': 'thr30', 'tag': 'ph_sn_jn_30'}
+            #{'label': 'thr30', 'tag': 'ph_sn_jn_30'}
             ] +
             [{'label': 'el%d' % i,
               'dirIncrement': 2,

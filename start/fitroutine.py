@@ -14,17 +14,27 @@ class fit(object):
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
                  log=None, fixSM=False, altData=None, lumiFactor=1.0,
-                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None):
-
-        parNames = ['label','signal','R0_','d_lumi','d_xs_dy','d_xs_st','tag','genPre','sigPre',
-                    'dirIncrement','genDirPre','d_wbb','quiet','templateID','defaults','log','fixSM',
-                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt']
-
-        self.pars = dict([(p,eval(p)) for p in parNames])
+                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False):
 
         np.random.seed(1981)
         for item in ['label','quiet','fixSM','only','nobg'] : setattr(self,item,eval(item))
         self.log = log if log else sys.stdout
+
+        parNames = ['label','signal','R0_','d_lumi','d_xs_dy','d_xs_st','tag','genPre','sigPre',
+                    'dirIncrement','genDirPre','d_wbb','quiet','templateID','defaults','log','fixSM',
+                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan']
+
+        self.pars = dict([(p,eval(p)) for p in parNames])
+
+        if sepchan:
+            assert not only
+            pars_el = dict(self.pars); pars_el.update({'sepchan':False, 'only':'_el'})
+            pars_mu = dict(self.pars); pars_mu.update({'sepchan':False, 'only':'_mu'})
+            self.fit_el = fit(**pars_el)
+            self.fit_mu = fit(**pars_mu)
+            self.fit_el.model.print_n(log)
+            self.fit_mu.model.print_n(log)
+
         if type(R0_) == tuple:
             diffR0_ = R0_[1]
             R0_ = R0_[0]
@@ -216,7 +226,7 @@ class fit(object):
     
 
     @roo.quiet
-    def ttree(self, truth={}):
+    def ttree(self, truth={}, pre=""):
         # Note : ROOT and array.array use opposite conventions for upper/lowercase (un)signed
         #         name     array  ROOT  ROOT_typedef
         types = {int    : ("i", "I", "Int_t"),
@@ -235,7 +245,7 @@ class fit(object):
         modelPairs = [(item,self.model.w.arg(item).getVal()) for item in self.modelItems()]
         
         address = {}
-        tree = r.TTree('fitresult','')
+        tree = r.TTree(pre+'fitresult','')
         for name,value in selfPairs+modelPairs+[('gen_'+key,val) for key,val in genvals.items()]:
             if type(value) not in [list,tuple]:
                 ar,ro,t = types[type(value)]
@@ -252,5 +262,10 @@ class fit(object):
         tfile = r.TFile.Open(fname,'RECREATE')
         tree = self.ttree(truth)
         tree.Write()
+        if self.pars['sepchan']:
+            etree = self.fit_el.ttree(truth, 'el')
+            mtree = self.fit_mu.ttree(truth, 'mu')
+            etree.Write()
+            mtree.Write()
         tfile.Close()
-
+        print 'Wrote ', fname

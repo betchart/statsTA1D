@@ -15,7 +15,7 @@ class measurement(object):
                  ensembles=None, ensSlice=(None,None),
                  calibrations=None, calSlice=(None,None),
                  outDir='output/', templateID=None, only="", nobg="", 
-                 rebin=False, no3D=False, twoStage=False, alttt=None):
+                 rebin=False, no3D=False, twoStage=False, alttt=None, sepchan=False):
         os.system('mkdir -p %s' % outDir)
         self.doVis = doVis
         self.outNameBase = (outDir + 
@@ -25,18 +25,19 @@ class measurement(object):
                             ('_no3D' if no3D else '') +
                             ('_twoStage' if twoStage else '') +
                             ('_t%03d'%templateID if templateID!=None else '') +
-                            ('_alttt-%s'%alttt if alttt else ''))
+                            ('_alttt-%s'%alttt if alttt else '') +
+                            ('_sepchan' if sepchan else ''))
 
         with open(self.outNameBase + 'SM.log', 'w') as log:
             pars = systematics.central()
-            pars.update({'fixSM':True,'log':log,'only':only, 'rebin':rebin, 'twoStage':twoStage, 'alttt':alttt})
+            pars.update({'fixSM':True,'log':log,'only':only, 'rebin':rebin, 'twoStage':twoStage, 'alttt':alttt, 'sepchan':sepchan})
             pars['label'] += 'SM'
             self.SM = fit(signal=signal, R0_=R0_, **pars)
             self.SM.model.print_n(log)
 
         with open(self.outNameBase + '.log', 'w') as log:
             pars = systematics.central()
-            pars.update({'log':log, 'only':only, 'rebin':rebin, 'twoStage':twoStage, 'alttt':alttt})
+            pars.update({'log':log, 'only':only, 'rebin':rebin, 'twoStage':twoStage, 'alttt':alttt, 'sepchan':sepchan})
             if templateID!=None: pars['label'] = 'T%03d'%templateID
             self.central = fit(signal=signal, R0_=R0_, templateID=templateID, **pars)
             self.central.model.print_n(log)
@@ -45,11 +46,11 @@ class measurement(object):
         defaults = dict([(v,self.central.model.w.arg(v).getVal()) for v in
                          ['alpha', 'd_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']])
 
-        if doVis: self.central.model.visualize(printName=self.outNameBase+'.pdf')
+        if doVis: self.central.model.visualize(printName=self.outNameBase+'.pdf', twoStage=twoStage)
 
         if ensembles: 
             pars = systematics.central()
-            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg, 'rebin':rebin,'no3D':no3D, 'twoStage':twoStage, 'alttt':alttt})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg, 'rebin':rebin,'no3D':no3D, 'twoStage':twoStage, 'alttt':alttt, 'sepchan':sepchan})
             for ensPars in ensemble_specs():
                 if ensPars['label'] not in ensembles: continue
                 ensPars.update({'ensSlice':ensSlice})
@@ -57,7 +58,7 @@ class measurement(object):
 
         if calibrations:
             pars = systematics.central()
-            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg, 'rebin':rebin, 'no3D':no3D, 'twoStage':twoStage, 'alttt':alttt})
+            pars.update({'signal':signal, 'R0_':R0_, 'log':log, 'only':only, 'nobg':nobg, 'rebin':rebin, 'no3D':no3D, 'twoStage':twoStage, 'alttt':alttt, 'sepchan':sepchan})
             for calPars in calibration_specs():
                 if calPars['which'] not in calibrations: continue
                 calPars.update({'calSlice':calSlice})
@@ -67,7 +68,7 @@ class measurement(object):
             if sys['label'] not in evalSystematics: continue
             pars = systematics.central()
             pars.update(sys)
-            pars.update({'only':only,'rebin':rebin, 'twoStage':twoStage})
+            pars.update({'only':only,'rebin':rebin, 'twoStage':twoStage, 'sepchan':sepchan})
             fname = self.outNameBase +'_sys_'+ sys['label'] + '.log'
             with open(fname, 'w') as log:
                 f = fit(signal=signal, R0_=R0_,

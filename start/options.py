@@ -24,6 +24,7 @@ parser.add_option("--nobg", dest='nobg', default=False, action='store_true',  he
 parser.add_option("--rebin", dest='rebin', default=False, action='store_true',  help='rebin the asymmetry observable')
 parser.add_option("--no3D", dest='no3D', default=False, action='store_true', help='rebin the tridiscriminant down to 1 bin')
 parser.add_option("--twoStage", dest='twoStage', default=False, action='store_true', help='fit sample composition first, then fix for fit of alpha: not compatible with --nobg or --no3D')
+parser.add_option("--sepchan", dest='sepchan', default=False, action='store_true', help='fit el and mu channels separately, and combine')
 parser.add_option("--alttt", dest='alttt', default=None, help='alternative tt templates')
 
 
