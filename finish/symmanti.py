@@ -45,8 +45,17 @@ class symmanti(object):
         tFile.Close()
 
 
-outName = 'output/symmAnti.pdf'
-props = {'tt':(r.kBlack, 3,r.kSolid), 'ttqq':(r.kRed,1,r.kSolid), 'ttgg':(r.kBlue,1,r.kSolid), 'ttqg':(r.kViolet,1,r.kSolid), 'ttag':(r.kViolet,1,r.kDashed)}
+outNames = ['output/symmAnti.pdf','output/symmAntiAlt.pdf','output/symmAntiCalib.pdf']
+props_s = [{'tt':(r.kBlack, 3,r.kSolid), 'ttqq':(r.kRed,1,r.kSolid), 'ttgg':(r.kBlue,1,r.kSolid), 'ttqg':(r.kViolet,1,r.kSolid), 'ttag':(r.kViolet,1,r.kDashed)},
+           {'tt':(r.kBlack, 3,r.kSolid), 'calib_mg.pu.sf':(r.kRed, 2, r.kSolid), 'calib_mn.pu.sf':(r.kBlue, 2, r.kSolid)},
+           {'tt':(r.kBlack, 3,r.kSolid),
+            'calib_R200.pu.sf':(r.kRed, 2, r.kSolid),
+            'calib_R2K.pu.sf':(r.kRed, 2, r.kDashed),
+            'calib_A200.pu.sf':(r.kBlue, 2, r.kSolid),
+            'calib_A2K.pu.sf':(r.kBlue, 2, r.kDashed),
+            'calib_L200.pu.sf':(r.kViolet, 2, r.kSolid),
+            'calib_ZP.pu.sf':(r.kGray, 2, r.kSolid)}]
 
 if __name__=="__main__":
-    symmanti(props, outName)
+    for outName, props in zip(outNames, props_s):
+        symmanti(props, outName)
