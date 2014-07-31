@@ -2,19 +2,28 @@
 
 import ROOT as r
 from lib.__autoBook__ import autoBook
-import array
+import array,math
+from itertools import izip
 
 r.gROOT.SetBatch(1)
 r.gStyle.SetOptFit(1)
 
 class ensemble1D(object):
-    def __init__(self, tree):
+    def __init__(self, tree, tree2=None):
         meanbook = autoBook("means")
         pullbook = autoBook("pulls")
-        for e in tree:
+
+        for e,m in izip(tree, tree2 if tree2 else tree):
+            esig2inv = 1./e.sigma**2
+            msig2inv = 1./m.sigma**2 if tree2 else 0
+            sig2inv = esig2inv + msig2inv
+            alpha = (e.alpha * esig2inv + m.alpha * msig2inv ) / sig2inv
+            fit = (e.fit * esig2inv + m.fit * msig2inv ) / sig2inv
+            gen_fit = e.gen_alpha *  e.fit / e.alpha
+            sigma = math.sqrt(1./sig2inv)
             label = "%+d"%(100*e.gen_alpha)
-            meanbook.fill(e.alpha,label, 30, e.gen_alpha - 1, e.gen_alpha+1, title='mean;alpha')
-            pullbook.fill( (e.fit-e.gen_fit)/e.sigma, label, 30, -5, 5, title = 'pull;(fit-gen_fit)/sigma')
+            meanbook.fill(alpha,label, 30, e.gen_alpha - 1.5, e.gen_alpha+1.5, title='mean;alpha')
+            pullbook.fill( (fit-gen_fit)/sigma, label, 30, -5, 5, title = 'pull;(fit-gen_fit)/sigma')
 
         c = r.TCanvas()
         c.Divide(2,1)
@@ -76,6 +85,8 @@ if __name__=='__main__':
     
     tf = r.TFile.Open(sys.argv[1])
     tree = tf.Get('fitresult')
-    ensemble1D(tree)
+    etree = tf.Get('elfitresult')
+    mtree = tf.Get('mufitresult')
+    ensemble1D(etree,mtree)
     tf.Close()
     
