@@ -51,6 +51,7 @@ class ensemble1D(object):
 
         mxye = [array.array('d', i) for i in zip(*mpointsXYe)]
         mgraph = r.TGraphErrors(len(mpointsXYe), mxye[0], mxye[1], array.array('d',[0]*len(mpointsXYe)), mxye[2])
+        mgraph.Fit("pol1")
         c.cd(1)
         mgraph.Draw("AP")
         #x1 = r.TF1('x1','x',-4,4)
@@ -61,6 +62,7 @@ class ensemble1D(object):
 
         pxye = [array.array('d', i) for i in zip(*ppointsXYe)]
         pgraph = r.TGraphErrors(len(ppointsXYe), pxye[0], pxye[1], array.array('d',[0]*len(ppointsXYe)), pxye[2])
+        pgraph.Fit("pol0")
         c.cd(2)
         pgraph.Draw("AP")
         one = r.TF1('one','1', -4, 4)
