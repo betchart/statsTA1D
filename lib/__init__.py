@@ -17,6 +17,17 @@ def get(d,key) :
     except: obj = d.Get(key)
     return obj
 #####################################
+def combined_result(measurements):
+    w2 = 0
+    xw2 = 0
+    for v,e in measurements:
+        w2 += 1./e**2
+        xw2 += v/e**2
+    e = 1./math.sqrt(w2)
+    return xw2 / w2, e
+def combined_error(errors):
+    return 1./math.sqrt(sum(1./e**2 for e in errors))
+#####################################
 def asymmetry(hist) :
     bins = [(hist.GetBinCenter(i),hist.GetBinContent(i),hist.GetBinError(i)) for i in range(hist.GetNbinsX()+2)]
     bans = [(y2-y1, y2+y1, e1**2+e2**2) for (x1,y1,e1),(x2,y2,e2) in zip(bins,bins[::-1]) if x1<x2 and y2+y1]
