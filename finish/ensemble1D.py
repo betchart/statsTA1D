@@ -32,7 +32,7 @@ class ensemble1D(object):
             permil = '#circ#kern[-0.2]{#/}#kern[-0.6]{#lower[0.4]{#circ#circ}}'
             meanbook.fill(alpha,label, 30, e.gen_alpha - 1.5, e.gen_alpha+1.5, title=';#alpha')
             pullbook.fill( (fit-gen_fit)/sigma, label, 30, -5, 5, title = ';#Delta/#sigma')
-            sigmbook.fill( 1000*sigma, label, 30, 2.15, 2.85, title = ';#sigma (%s)'%permil)
+            sigmbook.fill( sigma, label, 30, 2.15/1000, 2.85/1000, title = ';#sigma')
             nlle = -3365000
             nllm = -3525000
             nlldelta = 30000
@@ -101,7 +101,10 @@ class ensemble1D(object):
 
 
     def plotSigmas(self, outName = 'ensembleSigmas.pdf'):
+        r.TGaxis.SetMaxDigits(3)
         c = r.TCanvas()
+        c.SetRightMargin(0.11)
+        c.SetLeftMargin(0.09)
         c.Print(outName+'[')
         order = sorted(int(label) for label in self.sigmbook)
         total = self.sigmbook['-300'].Clone('combined_sigmas')
@@ -118,7 +121,7 @@ class ensemble1D(object):
             a = r.TArrow()
             a.SetLineColor(r.kBlue)
             a.SetLineWidth(4)
-            x = 1000 * lib.combined_error([self.datatrees['el'].sigma,self.datatrees['mu'].sigma])
+            x = lib.combined_error([self.datatrees['el'].sigma,self.datatrees['mu'].sigma])
             a.DrawArrow(x,3,x,0.4*total.GetMaximum(),0.05,"<")
         c.Update()
 
@@ -127,6 +130,7 @@ class ensemble1D(object):
 
     def plotNlls(self, outName = 'ensembleNlls.pdf'):
         c = r.TCanvas()
+        c.SetRightMargin(0.10)
         c.Print(outName+'[')
         order = sorted(int(label) for label in self.nllsbook)
         total = self.nllsbook['-300'].Clone('combined_nlls')
@@ -134,12 +138,18 @@ class ensemble1D(object):
         for iLab in order:
             lab = "%+d"%iLab
             m = self.nllsbook[lab]
+            m.GetZaxis().SetLabelSize(0)
             total.Add(m)
-            #m.Fit('gaus','QEML')
             m.Draw('colz')
             c.Print(outName)
-        #total.Fit('gaus','QEML')
+
+        total.GetZaxis().SetLabelSize(0)
         total.Draw('colz')
+        r.gPad.Update()
+        palette = total.GetListOfFunctions().FindObject("palette")
+        palette.SetY1NDC(0.2);
+        r.gPad.Modified()
+        r.gPad.Update()
 
         if self.datatrees:
             m = r.TMarker()
