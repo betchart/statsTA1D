@@ -83,7 +83,7 @@ class ensemble1D(object):
 
         pxye = [array.array('d', i) for i in zip(*ppointsXYe)]
         pgraph = r.TGraphErrors(len(ppointsXYe), pxye[0], pxye[1], array.array('d',[0]*len(ppointsXYe)), pxye[2])
-        pgraph.SetTitle(';#alpha_{gen};#LT#Delta/#sigma#GT')
+        pgraph.SetTitle(';#alpha_{gen};Gaussian Width of #Delta/#sigma')
         pgraph.Fit("pol0")
         delta = max(abs(1-pgraph.GetYaxis().GetXmin()), abs(1-pgraph.GetYaxis().GetXmax()))
         pgraph.SetMinimum(1-delta)
