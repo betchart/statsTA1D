@@ -138,7 +138,9 @@ class fit(object):
         step = 0.2 * alphaE
         points = [alpha+i*step for i in range(-10,11)]
         pllPoints = [pllEval(p) for p in points]
-        iBounds = zip(*sorted((abs(1-v),i) for i,v in enumerate(pllPoints))[:2])[1]
+        iL = min((abs(1-v),i) for i,v in list(enumerate(pllPoints))[:10])[1]
+        iR = min((abs(1-v),i) for i,v in list(enumerate(pllPoints))[10:])[1]
+        iBounds = (iL, iR)
         parb = parabola([(points[i],pllPoints[i]) for i in (10,)+iBounds])
 
         self.profVal = float(parb.xmin)
