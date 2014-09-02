@@ -24,7 +24,7 @@ class ensemble1D(object):
         nllsbook = autoBook("nlls")
 
         for e,m in izip(tree, tree2 if tree2 else tree):
-            fit, sigma = lib.combined_result([(e.fit,e.sigma),(m.fit,m.sigma)])
+            fit, sigma = lib.combined_result([(e.fit,e.sigma),(m.fit,m.sigma)]) if tree2 else (fit, sigma)
             alpha = fit / e.fit * e.alpha
             gen_fit = e.gen_alpha *  e.fit / e.alpha
 
