@@ -29,7 +29,8 @@ def central():
             'sigPre': '',
             'dirIncrement': 0,
             'd_wbb':0,
-            'label': 'central'
+            'label': 'central',
+            'twossigma': {}
             }
 
 
@@ -57,6 +58,18 @@ def systematics():
             
             {'label': 'ST_up', "d_xs_st": +0.20},
             {'label': 'ST_dn', "d_xs_st": -0.20},
+
+            {'label': 'WJ_up', 'twossigma': {'d_xs_wj': +1.0}},
+            {'label': 'WJ_dn', 'twossigma': {'d_xs_wj': -1.0}},
+
+            {'label': 'TT_up', 'twossigma': {'d_xs_tt': +1.0}},
+            {'label': 'TT_dn', 'twossigma': {'d_xs_tt': -1.0}},
+
+            {'label': 'QCDe_up', 'twossigma': {'factor_elqcd': +1.0}},
+            {'label': 'QCDe_dn', 'twossigma': {'factor_elqcd': -1.0}},
+
+            {'label': 'QCDm_up', 'twossigma': {'factor_muqcd': +1.0}},
+            {'label': 'QCDm_dn', 'twossigma': {'factor_muqcd': -1.0}},
 
             {'label': 'Q_dn', 'genPre': '053_', 'sigPre': '053_'},
             {'label': 'Q_up', 'genPre': '054_', 'sigPre': '054_'},

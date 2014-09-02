@@ -14,7 +14,7 @@ class fit(object):
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
                  log=None, fixSM=False, altData=None, lumiFactor=1.0,
-                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False):
+                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False, twossigma={}):
 
         np.random.seed(1981)
         for item in ['label','quiet','fixSM','only','nobg'] : setattr(self,item,eval(item))
@@ -22,7 +22,7 @@ class fit(object):
 
         parNames = ['label','signal','R0_','d_lumi','d_xs_dy','d_xs_st','tag','genPre','sigPre',
                     'dirIncrement','genDirPre','d_wbb','quiet','templateID','defaults','log','fixSM',
-                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan']
+                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan','twossigma']
 
         self.pars = dict([(p,eval(p)) for p in parNames])
 
@@ -112,6 +112,11 @@ class fit(object):
         parsSM = dict(self.pars)
         parsSM.update({'fixSM':True})
         sm = fit(**parsSM)
+        if parsSM['twossigma']:
+            v, dsigma = list(parsSM['twossigma'].items())[0]
+            fix = {v: sm.model.w.arg(v).getVal() + dsigma * sm.model.w.arg(v).getError()}
+            parsSM.update({'fixedValues':fix})
+            sm = fit(**parsSM)
 
         values = ['d_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']
         fixedValues = dict([(v,sm.model.w.arg(v).getVal()) for v in values])
