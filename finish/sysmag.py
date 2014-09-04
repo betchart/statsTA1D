@@ -76,7 +76,8 @@ class fitresult(object):
         self.porder.append('Total')
 
     def form(self,key):
-        top = key in self.order[:5]+self.porder[:5]
+        #top = key in self.order[:5]+self.porder[:5]
+        top = False
         form = (r"\textbf{% .3f}" if top else "% .3f ").rjust(20)
         d = (self.values[key] if key in self.order else self.pvalues[key])*100
         return (form%d).ljust(20)
@@ -131,11 +132,9 @@ if __name__ == '__main__':
     caption = r'''
 \caption{\label{list_systematics} %s 
 due to sources of systematic variations, ordered by decreasing
-magnitude in the full selection.
-%s
-The five greatest sources of systematic uncertainty in each selection are in bold.}
-'''%('Uncertainty on $A_c^y$' if summarize else 'Magnitude of the measurement displacement in the plane $(A_c^{y(\QQ)},A_c^{y(\QG)})$',
-     '%')
+magnitude.
+}
+'''%('Uncertainty on $A_c^y$' if summarize else 'Magnitude of the measurement displacement in the plane $(A_c^{y(\QQ)},A_c^{y(\QG)})$')
 
 
     print r'\begin{table}'
