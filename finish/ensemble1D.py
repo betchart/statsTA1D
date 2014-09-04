@@ -22,6 +22,7 @@ class ensemble1D(object):
         pullbook = autoBook("pulls")
         sigmbook = autoBook("sigma")
         nllsbook = autoBook("nlls")
+        diffbook = autoBook("diff")
 
         for e,m in izip(tree, tree2 if tree2 else tree):
             fit, sigma = lib.combined_result([(e.fit,e.sigma),(m.fit,m.sigma)]) if tree2 else (fit, sigma)
@@ -37,8 +38,9 @@ class ensemble1D(object):
             nllm = -3525000
             nlldelta = 30000
             nllsbook.fill( (e.NLL, m.NLL), label, (30, 30), (nlle - nlldelta,nllm - nlldelta), (nlle+nlldelta,nllm+nlldelta), title = ';NLL (e);NLL (#mu)'  )
+            diffbook.fill( e.alpha-m.alpha, label, 30, -3, 3, title=';#alpha_{e}-#alpha_{#mu}')
 
-        for item in ['mean','pull','sigm','nlls']:
+        for item in ['mean','pull','sigm','nlls','diff']:
             setattr(self,item+'book',eval(item+'book'))
 
     def plot(self, outName = 'ensembleFits.pdf'):
@@ -164,6 +166,34 @@ class ensemble1D(object):
         c.Print(outName)
         c.Print(outName+']')
 
+    def plotDiffs(self, outName = 'ensembleDiffs.pdf'):
+        c = r.TCanvas()
+        c.SetRightMargin(0.10)
+        c.Print(outName+'[')
+        order = sorted(int(label) for label in self.diffbook)
+        total = self.diffbook['-300'].Clone('combined_diff')
+        total.Reset()
+
+        for iLab in order:
+            lab = "%+d"%iLab
+            m = self.diffbook[lab]
+            m.GetZaxis().SetLabelSize(0)
+            total.Add(m)
+            m.Draw('colz')
+            c.Print(outName)
+        total.Draw()
+
+        if self.datatrees:
+            a = r.TArrow()
+            a.SetLineColor(r.kBlue)
+            a.SetLineWidth(4)
+            x = self.datatrees['el'].alpha - self.datatrees['mu'].alpha
+            a.DrawArrow(x,3,x,0.4*total.GetMaximum(),0.05,"<")
+        c.Update()
+
+        c.Print(outName)
+        c.Print(outName+']')
+
 
 if __name__=='__main__':
     import sys
@@ -179,8 +209,10 @@ if __name__=='__main__':
     datatrees = {'':tfdata.Get('fitresult'), 'el':tfdata.Get('elfitresult'), 'mu':tfdata.Get('mufitresult') } if tfdata else None
     e1D = ensemble1D(etree,mtree,datatrees)
     e1D.plot()
+    print '1'
     e1D.plotSigmas()
     e1D.plotNlls()
+    e1D.plotDiffs()
     if tfdata: tfdata.Close()
     tf.Close()
     
