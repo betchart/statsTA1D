@@ -27,6 +27,7 @@ class fitresult(object):
                        ('elid',('el2','el3')),
                        ('eltrig',('el0','el1')),
                        ('PT', ('PT','PT')),
+                       ('Model', ('_calmn000','_calmn000')),
                        ('MC stat.',('','')),
                    ]))
     labels = sum(pairs.values(),())
@@ -37,7 +38,7 @@ class fitresult(object):
                 'mu':tfile.Get('mufitresult')}
 
     def __init__(self,base):
-        self.sfile = r.TFile.Open('%s_sys.root'%base)
+        self.sfile = r.TFile.Open('%s_sys_with_model.root'%base)
         self.cfile = r.TFile.Open('%s.root'%base)
         self.tfile = r.TFile.Open('%s_t.root'%base)
         self.strees = self.getTrees(self.sfile)
