@@ -27,8 +27,8 @@ class fitresult(object):
                        ('elid',('el2','el3')),
                        ('eltrig',('el0','el1')),
                        ('PT', ('PT','PT')),
-                       ('Model', ('_calmn000','_calmn000')),
-                       ('MC stat.',('','')),
+                       ('Modeling', ('_calmn000','_calmn000')),
+                       ('MC statistics',('','')),
                    ]))
     labels = sum(pairs.values(),())
 
@@ -74,7 +74,7 @@ class fitresult(object):
         self.porder = sorted(self.pvalues, key = lambda k: self.pvalues[k], reverse=True)
 
         self.pvalues['Total'] = math.sqrt(sum(x**2 for x in self.pvalues.values()))
-        self.porder.append('Total')
+        self.porder.insert(0,'Total')
 
     def form(self,key):
         #top = key in self.order[:5]+self.porder[:5]
@@ -85,8 +85,6 @@ class fitresult(object):
 
 
 if __name__ == '__main__':
-
-    summarize = True
 
     result = fitresult('XL_full_rebin_twoStage_sepchan')
 
@@ -106,18 +104,19 @@ if __name__ == '__main__':
                 ('lumi',r'\lumi'),
                 ('ST',r'$\sigma_{ST}$'),
                 ('DY',r'$\sigma_{DY}$'),
-                ('mutrig',r'$\mu$ trig'),
-                ('muid', r'$\mu$ id'),
-                ('eltrig',r'$e$ trig'),
-                ('elid',r'$e$ id'),
+                ('mutrig',r'$\mu$ trigger'),
+                ('muid', r'$\mu$ ID'),
+                ('eltrig',r'$e$ trigger'),
+                ('elid',r'$e$ ID'),
                 ('PD:',r'pdf '),
                 ('as',r'$\alpha_s$'),
                 ('WBB',r'$\mathrm{Wb\bar{b}}$'),
                 ('PT',r'$p^\Pqt_{\mathrm{T}}$'),
-                ('WJ',r'W+jets composition'),
-                ('TT',r'$t\bar{t}$ composition'),
-                ('QCDe',r'Multijet composition (el+jets)'),
-                ('QCDm',r'Multijet composition (mu+jets)'),
+                ('WJ',r'$\delta_{\W j}$'),
+                ('TT',r'$\delta_{$\ttbar$}$'),
+                ('Modeling', r'$\ttbar$ modeling'),
+                ('QCDe',r'$F^e_{\MJ}$'),
+                ('QCDm',r'$F^\mu_{\MJ}$'),
                 ('Q',r'$Q^2$ scale')
                  ]
         def rep(key,ps):
@@ -126,29 +125,27 @@ if __name__ == '__main__':
         return rep(key,subs)
 
     vspace=r'''
-
-&&&&&\\
-
+&\\
 '''
     caption = r'''
 \caption{\label{list_systematics} %s 
 due to sources of systematic variations, ordered by decreasing
 magnitude.
 }
-'''%('Uncertainty on $A_c^y$' if summarize else 'Magnitude of the measurement displacement in the plane $(A_c^{y(\QQ)},A_c^{y(\QG)})$')
+'''%('Uncertainty on $A_c^y$')
 
 
     print r'\begin{table}'
-    print r'\begin{tabular}{lc}'
+    print r'\begin{tabular}{cl}'
     print r'\hline'
-    print r'&\multicolumn{2}{c}{(\%)}\\'
-    print '  &  '.join(['Full Selection']).join(['  &  ',r'  \\'])
+    print r'(\%)                                & Systematic\\'
     print r'\hline'
     print r'\hline'
-    print '\t'*3 , '\t&\t'.join(('',) + ('Full Selection',))
-    print '\n'.join(
-        formkey(key).ljust(28) +' & '+ ' & '.join(fr.form(key) for fr in [result]) + r'  \\' + (vspace if i%5==4 else '')
-        for i,key in enumerate(result.porder if summarize else result.order))
+    print '\n'.join(result.form(key) + ' & ' + formkey(key) + r' \\' + (vspace if i%3==0 else '')
+                    for i,key in enumerate(result.porder))
+#    print '\n'.join(
+#        formkey(key).ljust(28) +' & '+ ' & '.join(fr.form(key) for fr in [result]) + r'  \\' + (vspace if i%5==4 else '')
+#        for i,key in enumerate(result.porder if True else result.order))
     print r'\hline'
     print r'\end{tabular}'
     print caption
