@@ -125,6 +125,7 @@ class topModel(object):
         for part in ['','qcd']:
             if part not in whichs:
                 whichs[part] = dict((i, '_both') for i in ['wj', 'st'])
+                if part!='qcd': whichs[part]['dy'] = '_symm'
                 whichs[part].update({'tt': ''})
             if 'dy' in whichs[part]:
                 whichs[part].update({'dy': '_symm'})
@@ -226,10 +227,11 @@ class topModel(object):
         chans = ['el','mu']
         cross = ['tt', 'wj', 'mj', 'st', 'dy']
         print>>logfile, '\t','&','\t&\t'.join(r'\multicolumn{2}{c}{N_{%s}}'%xs for xs in cross), 'Total', 'Observed'
+        strings = {}
         for chan in chans:
             tot = 0
             tote2 = 0
-            print>>logfile, chan,'&',
+            strings[chan] = [chan]
             for xs in cross:
                 val = w.arg('expect_%s_%s' % (chan, xs)).getVal()
                 delta = w.arg('d_xs_%s'%xs)
@@ -239,9 +241,10 @@ class topModel(object):
                              factor.getError() / factor.getVal() if xs=='mj' else 0)
                 tot += val
                 tote2 += (val*relerr)**2
-                print>>logfile, lib.roundString(val/scale,relerr*val/scale).rjust(length / 3), '&',
-            print>>logfile, lib.roundString(tot/scale,math.sqrt(tote2)/scale).rjust(length / 3), '&',
-            print>>logfile, self.channels[chan].samples['data'].datas[0].Integral()/scale, r'\\'
+                strings[chan].append(lib.roundString(val/scale,relerr*val/scale).rjust(length / 3))
+            strings[chan].append( lib.roundString(tot/scale,math.sqrt(tote2)/scale).rjust(length / 3))
+            strings[chan].append( str(self.channels[chan].samples['data'].datas[0].Integral()/scale) + r' \\')
+            print>>logfile, ' & '.join(strings[chan])
         print>>logfile
 
 
@@ -276,7 +279,7 @@ class topModel(object):
         w = self.w
         data = w.data('data') if not hasattr(self,'altData') else self.altData
         tmp = next(d for d in data.split(w.arg('channel')) if d.GetName()==lep)
-        dhist = tmp.createHistogram('altaData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(self.nBinsX,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(self.nBinsY,-1,1)))
+        dhist = tmp.createHistogram('altData'+'_hist_'+lep, w.arg(self.observables[0]), r.RooFit.Binning(self.nBinsX,-1,1), r.RooFit.YVar(w.arg(self.observables[1]), r.RooFit.Binning(self.nBinsY,-1,1)))
         return dhist
 
 
@@ -292,7 +295,7 @@ class topModel(object):
         return [lib.asymmetry(h)[0] for h in self.proj(hist)]
 
     @roo.quiet
-    def visualize(self, printName='', nobg=""):
+    def visualize(self, printName='', nobg="", twoStage=False):
         w = self.w
         titles = ['X_{%s}'%self.observables[0],'#Delta']
         for v,t in zip(self.observables,titles) :
@@ -302,7 +305,8 @@ class topModel(object):
         r.setTDRStyle()
         r.TGaxis.SetMaxDigits(4)
         canvas = r.TCanvas()
-        canvas.Divide(self.nBinsY,2,0,0)
+        nY = 2 if twoStage else self.nBinsY
+        canvas.Divide(nY,2,0,0)
         canvas.Print(printName+'[')
 
         for j,lep in enumerate(['el','mu']):
@@ -310,7 +314,7 @@ class topModel(object):
             hist = self.expected_histogram(nobg + 'model_'+lep)
             if not self.quiet:
                 print self.channels[lep].samples.keys()
-            hists = dict([(s, self.expected_histogram(lep+'_'+s+('_both' if s in ['wj','st'] else '_symm' if s=='dy' else ''), 
+            hists = dict([(s, self.expected_histogram(lep+'_'+s+('_both' if s in ['wj','st'] else '_symm' if s=='dy' else ''),
                                                  w.arg('expect_%s_%s'%(lep,s)).getVal()))
                      for s in self.channels[lep].samples if s not in ['data']])
             hists['mj'] = self.expected_histogram(lep+'_mj', w.arg('expect_%s_mj'%lep).getVal())
@@ -326,15 +330,19 @@ class topModel(object):
                 stackers.append(h)
 
 
-            def proj(h): return [lib.symmAnti(hist) for hist in self.proj(h)]
+            def proj(h): 
+                if twoStage:
+                    return #craft this appropriately
+                else:
+                    return [lib.symmAnti(hist) for hist in self.proj(h)]
             model = proj(hist)
             data = proj(dhist)
             comps = [proj(h) for h in stackers]
-            hstack = [r.THStack('stack%d'%i,'') for i in range(self.nBinsY)]
+            hstack = [r.THStack('stack%d'%i,'') for i in range(nY)]
             maximum = 1.1 * max(d[0].GetMaximum() for d in data)
             amaximum = 1.7 * max([max(abs(h[1].GetMaximum()),abs(h[1].GetMinimum())) for hist in [data,model] for h in hist])
             antis = []
-            for i in range(self.nBinsY):
+            for i in range(nY):
                 canvas.cd(i+1)
                 for c in comps: 
                     hstack[i].Add(c[i][0])
