@@ -25,15 +25,20 @@ class fit(object):
                     'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan','twossigma']
 
         self.pars = dict([(p,eval(p)) for p in parNames])
+        print>>log, sorted(self.pars.items())
+        print>>log, ''
 
         if sepchan:
             assert not only
+            print>>log, 'fitting el'
             pars_el = dict(self.pars); pars_el.update({'sepchan':False, 'only':'_el'})
-            pars_mu = dict(self.pars); pars_mu.update({'sepchan':False, 'only':'_mu'})
             self.fit_el = fit(**pars_el)
+            print>>log, ''
+
+            print>>log, 'fitting mu'
+            pars_mu = dict(self.pars); pars_mu.update({'sepchan':False, 'only':'_mu'})
             self.fit_mu = fit(**pars_mu)
-            self.fit_el.model.print_n(log)
-            self.fit_mu.model.print_n(log)
+            print>>log, ''
 
         if type(R0_) == tuple:
             diffR0_ = R0_[1]
@@ -96,6 +101,8 @@ class fit(object):
         if fixSM: self.doSM()
         elif twoStage: self.doTwoStage()
         else: self.doFit()
+        self.model.print_n(self.log)
+
 
     @roo.quiet
     def doSM(self):
@@ -110,7 +117,8 @@ class fit(object):
     @roo.quiet
     def doTwoStage(self):
         parsSM = dict(self.pars)
-        parsSM.update({'fixSM':True})
+        parsSM.update({'fixSM':True,'sepchan':False})
+        print>>self.log, 'stage1'
         sm = fit(**parsSM)
         if parsSM['twossigma']:
             v, dsigma = list(parsSM['twossigma'].items())[0]
@@ -121,8 +129,9 @@ class fit(object):
         values = ['d_xs_tt', 'd_xs_wj', 'factor_elqcd', 'factor_muqcd']
         fixedValues = dict([(v,sm.model.w.arg(v).getVal()) for v in values])
         
+        print>>self.log, 'stage2'
         parsA = dict(self.pars)
-        parsA.update({'no3D':True, 'fixedValues':fixedValues, 'twoStage':False})
+        parsA.update({'no3D':True, 'fixedValues':fixedValues, 'twoStage':False,'sepchan':False})
         self.secondStage = fit(**parsA)
 
         for v in ['alpha']+values:
