@@ -151,4 +151,9 @@ magnitude.
     print caption
     print r'\end{table}'
     print
-    print result.central()
+    central = result.central()
+    Ac = 100 * central[0]
+    stat = 100 * central[1]
+    sys = 100 * result.pvalues['Total']
+    print Ac, stat, sys
+    print Ac, math.sqrt(stat**2 + sys**2)
