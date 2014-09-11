@@ -297,7 +297,7 @@ class topModel(object):
     @roo.quiet
     def visualize(self, printName='', nobg="", twoStage=False):
         w = self.w
-        titles = ['X_{%s}'%self.observables[0],'#Delta']
+        titles = ['X_{%s}'%self.observables[0][1],'{}^{#Delta}']
         for v,t in zip(self.observables,titles) :
             w.arg(v).SetTitle(t)
 
@@ -305,8 +305,8 @@ class topModel(object):
         r.setTDRStyle()
         r.TGaxis.SetMaxDigits(4)
         canvas = r.TCanvas()
-        nY = 2 if twoStage else self.nBinsY
-        canvas.Divide(nY,2,0,0)
+        nY = 1 if twoStage else self.nBinsY
+        if not twoStage: canvas.Divide(nY,2,0,0)
         canvas.Print(printName+'[')
 
         for j,lep in enumerate(['el','mu']):
@@ -319,7 +319,7 @@ class topModel(object):
                      for s in self.channels[lep].samples if s not in ['data']])
             hists['mj'] = self.expected_histogram(lep+'_mj', w.arg('expect_%s_mj'%lep).getVal())
 
-            stack = [('tt',),('wj',),('mj',), ('dy','st')][::-1]
+            stack = [('tt',),('wj',),('mj',), ('st','dy')][::-1]
             colors = [r.kViolet,r.kGreen+1,r.kRed,r.kGray][::-1]
             stackers = []
             for s,c in zip(stack,colors)[-1 if nobg else 0:]:
@@ -329,44 +329,55 @@ class topModel(object):
                 h.SetLineColor(c)
                 stackers.append(h)
 
-
-            def proj(h): 
+            def proj(h, axis=None): 
                 if twoStage:
-                    return #craft this appropriately
+                    oneD = getattr(h,'Projection'+axis)()
+                    return [lib.symmAnti(oneD)] if axis=='X' else [(oneD,oneD)]
                 else:
                     return [lib.symmAnti(hist) for hist in self.proj(h)]
-            model = proj(hist)
-            data = proj(dhist)
-            comps = [proj(h) for h in stackers]
-            hstack = [r.THStack('stack%d'%i,'') for i in range(nY)]
-            maximum = 1.1 * max(d[0].GetMaximum() for d in data)
-            amaximum = 1.7 * max([max(abs(h[1].GetMaximum()),abs(h[1].GetMinimum())) for hist in [data,model] for h in hist])
-            antis = []
-            for i in range(nY):
-                canvas.cd(i+1)
-                for c in comps: 
-                    hstack[i].Add(c[i][0])
-                model[i][0].SetMinimum(0)
-                model[i][0].SetLineColor(r.kBlue)
-                data[i][0].SetMinimum(0)
-                data[i][0].SetMaximum(maximum)
-                data[i][0].Draw()
-                model[i][0].Draw('hist same')
-                hstack[i].Draw('hist same')
-                data[i][0].Draw('same')
 
-                canvas.cd(i+1+self.nBinsY)
-                data[i][1].SetMinimum(-amaximum)
-                data[i][1].SetMaximum(amaximum)
-                data[i][1].Draw()
-                model[i][1].SetLineWidth(2)
-                model[i][1].SetLineColor(r.kBlue)
-                model[i][1].Draw('hist same')
-                for h,c in zip(comps,colors)[-1:]:
-                    h[i][1].ResetAttFill()
-                    h[i][1].Draw('hist same')
-            sys.stdout.write(' ')
-            canvas.Print(printName)
+            for axis in (['Y','X'] if twoStage else [None]):
+                model = proj(hist, axis)
+                data = proj(dhist, axis)
+                comps = [proj(h, axis) for h in stackers]
+                hstack = [r.THStack('stack%d'%i,'') for i in range(nY)]
+                maximum = 1.1 * max(d[0].GetMaximum() for d in data)
+                amaximum = 1.7 * max([max(abs(h[1].GetMaximum()),abs(h[1].GetMinimum())) for hs in [data,model] for h in hs])
+                for i in range(nY):
+                    if not twoStage: canvas.cd(i+1)
+                    for c in comps: 
+                        hstack[i].Add(c[i][0])
+                    model[i][0].SetMinimum(0)
+                    model[i][0].SetLineColor(r.kBlue)
+                    data[i][0].SetMinimum(0)
+                    data[i][0].SetMaximum(maximum)
+                    data[i][0].GetYaxis().SetTitle('Events / 0.4')
+                    data[i][0].GetXaxis().SetNdivisions(5,False)
+                    data[i][0].Draw()
+                    model[i][0].Draw('hist same')
+                    hstack[i].Draw('hist same')
+                    data[i][0].Draw('same')
+    
+                    if axis=='Y': continue
+                    if twoStage:
+                        canvas.Print(printName)
+                    else: canvas.cd(i+1+nY)
+                    for k,(h,c) in enumerate(zip(comps,colors)[::-1]):
+                        if k:
+                            h[i][1].ResetAttFill()
+                        else:
+                            h[i][1].GetYaxis().SetTitle('Events / 0.4')
+                            h[i][1].GetXaxis().SetNdivisions(5,False)
+                        h[i][1].SetMinimum(-amaximum)
+                        h[i][1].SetMaximum(amaximum)
+                        h[i][1].SetLineWidth(2)
+                        h[i][1].Draw('hist' + ('same' if k else ''))
+                    model[i][1].SetLineWidth(4)
+                    model[i][1].SetLineColor(r.kBlue)
+                    model[i][1].Draw('hist same')
+                    data[i][1].Draw('same')
+                sys.stdout.write(' ')
+                canvas.Print(printName)
 
         print
         canvas.Print(printName+']')
