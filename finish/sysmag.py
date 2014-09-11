@@ -3,7 +3,6 @@
 import sys
 import math
 import numpy as np
-from functools import partial
 import ROOT as r
 import os
 
