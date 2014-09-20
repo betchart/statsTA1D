@@ -394,6 +394,8 @@ class topModel(object):
                     modelP[i][1].SetLineColor(r.kBlue); modelP[i][1].SetLineStyle(r.kDashed); modelP[i][1].SetLineWidth(2)
                     modelM[i][1].SetLineColor(r.kBlue); modelM[i][1].SetLineStyle(r.kDotted); modelM[i][1].SetLineWidth(2)
 
+                    model[i][1].GetYaxis().SetTitle('Events / 0.4')
+                    model[i][1].GetXaxis().SetNdivisions(5,False)
                     model[i][1].SetMinimum(-amaximum)
                     model[i][1].SetMaximum(amaximum)
                     model[i][1].Draw('hist')
