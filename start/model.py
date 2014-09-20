@@ -309,9 +309,19 @@ class topModel(object):
         if not twoStage: canvas.Divide(nY,2,0,0)
         canvas.Print(printName+'[')
 
+        alpha = self.w.arg('alpha')
+        alphaV = alpha.getVal()
+        alphaE = alpha.getError()
         for j,lep in enumerate(['el','mu']):
             dhist = self.data_hist(lep)
             hist = self.expected_histogram(nobg + 'model_'+lep)
+            
+            alpha.setVal(alphaV+alphaE)
+            histP = self.expected_histogram(nobg + 'model_'+lep)
+            alpha.setVal(alphaV-alphaE)
+            histM = self.expected_histogram(nobg + 'model_'+lep)
+            alpha.setVal(alphaV); alpha.setError(alphaE)
+
             if not self.quiet:
                 print self.channels[lep].samples.keys()
             hists = dict([(s, self.expected_histogram(lep+'_'+s+('_both' if s in ['wj','st'] else '_symm' if s=='dy' else ''),
@@ -338,11 +348,13 @@ class topModel(object):
 
             for axis in (['Y','X'] if twoStage else [None]):
                 model = proj(hist, axis)
+                modelP = proj(histP, axis)
+                modelM = proj(histM, axis)
                 data = proj(dhist, axis)
                 comps = [proj(h, axis) for h in stackers]
                 hstack = [r.THStack('stack%d'%i,'') for i in range(nY)]
                 maximum = 1.1 * max(d[0].GetMaximum() for d in data)
-                amaximum = 1.7 * max([max(abs(h[1].GetMaximum()),abs(h[1].GetMinimum())) for hs in [data,model] for h in hs])
+                amaximum = 1.2 * max([max(abs(h[1].GetMaximum()),abs(h[1].GetMinimum())) for hs in [data,model,modelP,modelM] for h in hs])
                 for i in range(nY):
                     if not twoStage: canvas.cd(i+1)
                     for c in comps: 
@@ -376,6 +388,19 @@ class topModel(object):
                     model[i][1].SetLineColor(r.kBlue)
                     model[i][1].Draw('hist same')
                     data[i][1].Draw('same')
+                    if not twoStage: continue
+                    canvas.Print(printName)
+                    
+                    modelP[i][1].SetLineColor(r.kBlue); modelP[i][1].SetLineStyle(r.kDashed); modelP[i][1].SetLineWidth(2)
+                    modelM[i][1].SetLineColor(r.kBlue); modelM[i][1].SetLineStyle(r.kDotted); modelM[i][1].SetLineWidth(2)
+
+                    model[i][1].SetMinimum(-amaximum)
+                    model[i][1].SetMaximum(amaximum)
+                    model[i][1].Draw('hist')
+                    modelP[i][1].Draw('hist same')
+                    modelM[i][1].Draw('hist same')
+                    data[i][1].Draw('same')
+                    
                 sys.stdout.write(' ')
                 canvas.Print(printName)
 

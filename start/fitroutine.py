@@ -136,6 +136,7 @@ class fit(object):
 
         for v in ['alpha']+values:
             self.model.w.arg(v).setVal(self.secondStage.model.w.arg(v).getVal())
+            self.model.w.arg(v).setError(self.secondStage.model.w.arg(v).getError())
 
         transfer = ['profVal','profErr','scale','fit','sigma','profPLL','pll','points','pllPoints','parbABC','NLL','fitstatus']
         for item in transfer:
@@ -181,6 +182,7 @@ class fit(object):
             print>>self.log, 'iBounds', iBounds
             for i,(p,v) in enumerate(zip(points,pllPoints)):
                 print>>self.log, i, p, v
+        w.arg('alpha').setError(self.profErr)
         return
 
     @roo.quiet
