@@ -55,7 +55,7 @@ class nll_plot(object):
         ax.xaxis.tick_top()
         ax2.xaxis.tick_bottom()
         ax2.xaxis.set_label_position('bottom')
-        ax2.set_xlabel(r'$A_c^y$ (%)', fontsize=fs)
+        ax2.set_xlabel(r'$A_c^y (\%)$', fontsize=fs)
 
         tree = trees[0]
         ax2.set_xlim(-300*tree.scale, 300*tree.scale)
