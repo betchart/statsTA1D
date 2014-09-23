@@ -13,7 +13,7 @@ class bias_plot(object):
 
         fs = 20
         lw = 1.3
-        fig = plt.figure()
+        fig = plt.figure(figsize=(6.5,6.5))
         ax = fig.add_subplot(111)
         ax.set_ylim(-2,2)
         ax.set_xlim(-2,2)
@@ -50,12 +50,16 @@ class bias_plot(object):
         cgen = []
         cfit = []
         cerr = []
+        clab = []
         for k,v in bookC.items():
             if 'gen' in k: continue
             cgen.append(bookC[k.replace('mean','gen')].GetMean())
             cfit.append(v.GetMean())
             cerr.append(v.GetMeanError())
+            clab.append(k)
         ax.errorbar(cgen,cfit,yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathrm{t\bar{t}}$ models')
+        for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
+            print k, g, f
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         ax.axhspan( -100, -99, alpha=0.3, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}$')
@@ -70,6 +74,16 @@ class bias_plot(object):
             ax.axvspan( f-s, f+s, alpha=0.6, fc=c, ec=c, label=L)
 
         ax.legend(loc='upper left', prop={'size':10}).draw_frame(False)
+
+        labelsfonts = {'fontsize':8}
+        ax.text(-0.4, -0.15, 'madgraph', labelsfonts, ha='right')
+        ax.text(0.15, 0.5, r"$Z'$", labelsfonts, ha='right')
+        ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.1, 'shrink':0.2, 'headwidth':2}, fontsize=8)
+        ax.text(0.55, 0.3, 'mc@nlo', labelsfonts)
+        ax.text(0.65, 0.45, 'RIGHT', labelsfonts)
+        ax.text(0.5, 0.7, 'left', labelsfonts, ha='right')
+        ax.text(1.15, 0.9, 'AXIAL', labelsfonts)
+        ax.text(1.65, 1.3, 'axial', labelsfonts)
 
         pp = PdfPages('output/bias_plot.pdf')
         pp.savefig(fig)
