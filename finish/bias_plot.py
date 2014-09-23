@@ -78,7 +78,7 @@ class bias_plot(object):
         labelsfonts = {'fontsize':8}
         ax.text(-0.4, -0.15, 'madgraph', labelsfonts, ha='right')
         ax.text(0.15, 0.5, r"$Z'$", labelsfonts, ha='right')
-        ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.1, 'shrink':0.2, 'headwidth':2}, fontsize=8)
+        ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.05, 'shrink':0.2, 'headwidth':2}, fontsize=8)
         ax.text(0.55, 0.3, 'mc@nlo', labelsfonts)
         ax.text(0.65, 0.45, 'RIGHT', labelsfonts)
         ax.text(0.5, 0.7, 'left', labelsfonts, ha='right')
