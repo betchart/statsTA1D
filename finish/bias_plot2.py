@@ -15,14 +15,14 @@ class bias_plot(object):
         lw = 1.3
         fig = plt.figure(figsize=(6.5,6.5))
         ax = fig.add_subplot(111)
-        ax.set_ylim(-2,2)
+        #ax.set_ylim(-2,2)
         ax.set_xlim(-2,2)
-        ax.set_ylabel(r'$A_c^y (\%)$ : Measured', fontsize=fs)
+        ax.set_ylabel(r'Measurement Bias $(\%)$', fontsize=fs)
         ax.set_xlabel(r'$A_c^y (\%)$ : Calculated', fontsize=fs)
-        ax.set_aspect('equal')
+        #ax.set_aspect('equal')
         
         t = np.arange(-2,2,0.01)
-        ax.plot(t,t, lw=0.5, color='k')[0].set_dashes([1,1])
+        ax.plot(t,np.zeros(len(t)), lw=0.5, color='k')[0].set_dashes([1,1])
 
         bookA = autoBook('A')
         for e,m in izip(*treesA):
@@ -38,7 +38,7 @@ class bias_plot(object):
             gen.append(float(k[5:])*e.scale*100)
             fit.append(v.GetMean())
             err.append(v.GetMeanError())
-        ax.errorbar(gen,fit,yerr=err,fmt='o', color='k', mec=(0,0.9,0), mfc='none', label='Extended POWHEG', mew=1)
+        ax.errorbar(gen,fit-np.array(gen),yerr=err,fmt='o', color='k', mec=(0,0.9,0), mfc='none', label='Extended POWHEG', mew=1)
 
         bookC = autoBook('C')
         for e,m in izip(*treesC):
@@ -51,20 +51,38 @@ class bias_plot(object):
         cfit = []
         cerr = []
         clab = []
-        for k,v in bookC.items():
+        iLow = []
+        iHi = []
+        iOther = []
+        for i, (k,v) in enumerate(x for x in bookC.items() if 'gen' not in x[0]):
             if 'gen' in k: continue
             cgen.append(bookC[k.replace('mean','gen')].GetMean())
             cfit.append(v.GetMean())
             cerr.append(v.GetMeanError())
             clab.append(k)
-        ax.errorbar(cgen,cfit,yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathrm{t\bar{t}}$ models')
+            print k
+            if '.' in k:
+                iLow.append(i)
+            elif '2' in k:
+                iHi.append(i)
+            else: iOther.append(i)
+
+        #ax.errorbar(cgen,cfit-np.array(cgen),yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathrm{t\bar{t}}$ models')
+        ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='.', color=(0,0,0.85), mec='k')
+        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'Axigluon, $200\,\mathrm{GeV}$')
+        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'Axigluon, $2\,\mathrm{TeV}$')
+
         for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
             print k, g, f, e
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
-        ax.axhspan( -100, -99, alpha=0.3, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}$')
-        ax.axhspan( 100*(fit-sigma), 100*(fit+sigma), alpha=0.2, fc='k', hatch='')
-        ax.axhspan( 100*(fit-0.0039), 100*(fit+0.0039), alpha=0.15, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{sys}$')
+        #ax.axhspan( -100, -99, alpha=0.3, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}$')
+        #ax.axhspan( 100*(fit-sigma), 100*(fit+sigma), alpha=0.2, fc='k', hatch='')
+        #ax.axhspan( 100*(fit-0.0039), 100*(fit+0.0039), alpha=0.15, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{sys}$')
+
+        sys_modeling = 0.075
+        ax.axhspan( -sys_modeling, sys_modeling, alpha=0.15, fc='k', hatch='', label=r'Modeling Systematic')
+
 
         PH = (tree.scale*100, 0.0009*100)
         KR = (0.0102*100, 0.0005*100)
@@ -73,19 +91,19 @@ class bias_plot(object):
         for (f,s),c,L in predictions:
             ax.axvspan( f-s, f+s, alpha=0.6, fc=c, ec=c, label=L)
 
-        ax.legend(loc='upper left', prop={'size':10}).draw_frame(False)
+        ax.legend(loc='lower left', prop={'size':10}, numpoints=1).draw_frame(False)
 
-        labelsfonts = {'fontsize':8}
-        ax.text(-0.4, -0.15, 'madgraph', labelsfonts, ha='right')
-        ax.text(0.15, 0.5, r"$Z'$", labelsfonts, ha='right')
-        ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.05, 'shrink':0.2, 'headwidth':2}, fontsize=8)
-        ax.text(0.55, 0.3, 'mc@nlo', labelsfonts)
-        ax.text(0.65, 0.45, 'RIGHT', labelsfonts)
-        ax.text(0.5, 0.7, 'left', labelsfonts, ha='right')
-        ax.text(1.15, 0.9, 'AXIAL', labelsfonts)
-        ax.text(1.65, 1.3, 'axial', labelsfonts)
+        labelsfonts = {'fontsize':11}
+        ax.text(-0.4, 0.15, 'madgraph', labelsfonts, ha='right')
+        ax.text(0.15, 0.255, r"$Z'$", labelsfonts, ha='right')
+        #ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.05, 'shrink':0.2, 'headwidth':2}, fontsize=8)
+        ax.text(0.4, -0.135, 'mc@nlo', labelsfonts, ha='right')
+        #ax.text(0.65, 0.45, 'RIGHT', labelsfonts)
+        #ax.text(0.5, 0.7, 'left', labelsfonts, ha='right')
+        #ax.text(1.15, 0.9, 'AXIAL', labelsfonts)
+        #ax.text(1.65, 1.3, 'axial', labelsfonts)
 
-        pp = PdfPages('output/bias_plot.pdf')
+        pp = PdfPages('output/bias_plot2.pdf')
         pp.savefig(fig)
         pp.close()
 
