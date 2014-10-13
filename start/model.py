@@ -314,6 +314,8 @@ class topModel(object):
         alphaE = alpha.getError()
         for j,lep in enumerate(['el','mu']):
             dhist = self.data_hist(lep)
+            bgsub = dhist.Clone(lep+'bgsub')
+            bgsub.Sumw2()
             hist = self.expected_histogram(nobg + 'model_'+lep)
             
             alpha.setVal(alphaV+alphaE)
@@ -334,7 +336,9 @@ class topModel(object):
             stackers = []
             for s,c in zip(stack,colors)[-1 if nobg else 0:]:
                 h = hists[s[0]]
-                for n in s[1:]: h.Add(hists[n])
+                for n in s[1:]:
+                    h.Add(hists[n])
+                    bgsub.Add(hists[n], -1)
                 h.SetFillColor(c)
                 h.SetLineColor(c)
                 stackers.append(h)
@@ -402,6 +406,22 @@ class topModel(object):
                     modelP[i][1].Draw('hist same')
                     modelM[i][1].Draw('hist same')
                     data[i][1].Draw('same')
+                    canvas.Print(printName)
+
+                    bgsubX = bgsub.ProjectionX()
+                    bgsubX.Draw()
+                    v = []
+                    e = []
+                    for iBin in range(bgsubX.GetNbinsX()):
+                        v.append(bgsubX.GetBinContent(iBin+1))
+                        e.append(bgsubX.GetBinError(iBin+1))
+                    s = sum(v)
+                    et = math.sqrt(sum([ee*ee for ee in e]))
+                    print v
+                    print v[:2], v[3:]
+                    d =  sum(v[3:]) - sum(v[:2]) 
+                    print 100 * d/s, '+/-', 100 * et/s
+                    print
                     
                 sys.stdout.write(' ')
                 canvas.Print(printName)
