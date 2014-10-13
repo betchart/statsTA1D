@@ -18,7 +18,7 @@ class bias_plot(object):
         lw = 1.3
         fig = plt.figure(figsize=(6.5,6.5))
         ax = fig.add_subplot(111)
-        ax.set_ylim(-12,2)
+        ax.set_ylim(-6,1)
         ax.set_xlim(-2,2)
         ax.set_xlabel(r'$A_c^y (\%)$', fontsize=fs)
         #ax.set_xlabel(r'$A_c^y (\%)$ : Calculated', fontsize=fs)
@@ -29,11 +29,12 @@ class bias_plot(object):
         for e,m in izip(*treesC):
             fit,sigma = lib.combined_result([(e.fit,e.sigma),(m.fit,m.sigma)])
             label = e.label[4:6]
+            if label in ['R.','L.','A.','ZP','A2','R2','L2']: continue
             bookC.fill( e.gen_Ac*100, 'gen_'+label, 1000, -2, 2)
             bookC.fill( fit*100, "mean_"+label, 100, (e.gen_Ac-e.scale)*100, (e.gen_Ac+e.scale)*100)
 
-        names = {'R.':'right', 'L.':'left','A.':'axial','ZP':"$Z'$",'mn':'MC@NLO','mg':'MADGRAPH','A2':'AXIAL','R2':'RIGHT','L2':'LEFT'}
-        order = [1, 2, 3, 0, 4, 6, 7, 5]
+        names = {'mn':'MC@NLO','mg':'MADGRAPH'}
+        order = [1,0]
         cgen = []
         cfit = []
         cerr = []
@@ -45,12 +46,14 @@ class bias_plot(object):
             cerr.append(v.GetMeanError())
             clab.append(k)
         for i,(g,f,e,l) in enumerate(sorted(zip(cgen,cfit,cerr,clab))):
-            ax.arrow(f, -4-order[i], g-f, 0, color=(0,0,0.85), head_length=0.1, head_width=0.2)
+            ax.plot([g], [-4-order[i]], 'ob', color=(0,0,0.85), )
+            #ax.arrow(f, -4-order[i], g-f, 0, color=(0,0,0.85), head_length=0.1, head_width=0.2)
             ax.text(just, -4-order[i], names[l[-2:]], ha='right')
         for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
             print k, g, f, e
 
-        ax.errorbar( 0.5, 0, xerr=math.sqrt(0.7**2+0.6**2), color='k', linewidth=6)
+        lw = 10
+        ax.errorbar( 0.5, 0, xerr=math.sqrt(0.7**2+0.6**2), color='k', linewidth=lw)
         ax.text(just, 0, 'CMS unfold 8TeV', ha='right')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
@@ -64,7 +67,7 @@ class bias_plot(object):
         BS = (0.0111*100, 0.0004*100)
         predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],['K&R','B&S','POWHEG'])
         for i,((f,s),c,L) in enumerate(predictions):
-            ax.errorbar( f, -1-i, xerr=s, alpha=0.6, color=c,linewidth=6)
+            ax.errorbar( f, -1-i, xerr=s, alpha=0.6, color=c, linewidth=lw)
             ax.text(just, -1-i, L, ha='right')
 
         ax.legend(loc='upper right', prop={'size':10}).draw_frame(False)
