@@ -4,6 +4,7 @@ import lib
 from lib.__autoBook__ import autoBook
 from itertools import izip
 import ROOT as r
+import math
 
 import matplotlib
 class bias_plot(object):
@@ -15,7 +16,7 @@ class bias_plot(object):
         lw = 1.3
         fig = plt.figure(figsize=(6.5,6.5))
         ax = fig.add_subplot(111)
-        #ax.set_ylim(-2,2)
+        ax.set_ylim(-0.4,0.4)
         ax.set_xlim(-2,2)
         ax.set_ylabel(r'Measurement Bias $(\%)$', fontsize=fs)
         ax.set_xlabel(r'$A_c^y (\%)$ : Calculated', fontsize=fs)
@@ -69,8 +70,8 @@ class bias_plot(object):
 
         #ax.errorbar(cgen,cfit-np.array(cgen),yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathrm{t\bar{t}}$ models')
         ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='.', color=(0,0,0.85), mec='k')
-        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'Axigluon, $200\,\mathrm{GeV}$')
-        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'Axigluon, $2\,\mathrm{TeV}$')
+        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'$200\,\mathrm{GeV}$ axigluon models')
+        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'$2\,\mathrm{TeV}$ axigluon models')
 
         for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
             print k, g, f, e
@@ -80,16 +81,10 @@ class bias_plot(object):
         #ax.axhspan( 100*(fit-sigma), 100*(fit+sigma), alpha=0.2, fc='k', hatch='')
         #ax.axhspan( 100*(fit-0.0039), 100*(fit+0.0039), alpha=0.15, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{sys}$')
 
-        sys_modeling = 0.075
-        ax.axhspan( -sys_modeling, sys_modeling, alpha=0.15, fc='k', hatch='', label=r'Modeling Systematic')
+        sys = {'mcstat':0.232, 'modeling': 0.075, 'pdf': 0.020, 'scale': 0.001}
+        sys_th = math.sqrt(sum(s*s for s in sys.values()))
+        ax.axhspan( -sys_th, sys_th, alpha=0.15, fc='k', hatch='', label=r'Theory Systematics')
 
-
-        PH = (tree.scale*100, 0.0009*100)
-        KR = (0.0102*100, 0.0005*100)
-        BS = (0.0111*100, 0.0004*100)
-        predictions = zip([PH, KR, BS],[(0.2,0.8,0),(0.75,0,0),(0.5,0,0)],['POWHEG','K&R','B&S'])
-        for (f,s),c,L in predictions:
-            ax.axvspan( f-s, f+s, alpha=0.6, fc=c, ec=c, label=L)
 
         ax.legend(loc='lower left', prop={'size':10}, numpoints=1).draw_frame(False)
 
