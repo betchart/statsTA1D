@@ -9,9 +9,10 @@ def mean(tree,query):
     hist = r.TH1D('hist','',1000,-10,10)
     tree.Draw("(%s)>>hist"%query)
     mean = hist.GetMean()
+    meanErr = hist.GetMeanError()
     hist.Clear()
     del hist
-    return mean
+    return mean, meanErr
 
 
 class biases(object):
@@ -34,7 +35,7 @@ class biases(object):
         self.values = dict([(label,mean(tree,query)) for label, query in exprs.items()])
     
     def __str__(self):
-        return '\n'.join("%s:\t%+0.3f"%(lab,val) for lab,val in sorted(self.values.items()))
+        return '\n'.join("%s:\t%+0.3f (%.4f)"%(lab,val[0],val[1]) for lab,val in sorted(self.values.items()))
     
 
 import sys

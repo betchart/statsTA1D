@@ -49,7 +49,7 @@ class bias_plot(object):
         PH = (tree.scale*100, PHerr)
         KR = (0.0102*100, 0.0005*100)
         BS = (0.0111*100, 0.0004*100)
-        predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],['K&R','B&S','POWHEG'])
+        predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],['K&R 2012','B&S 2012','POWHEG'])
         for i,((f,s),c,L) in enumerate(predictions):
             ax.errorbar( f, -1-i, xerr=s, color='r', linewidth=lw)
             ax.text(just, -1-i, L, ha='right')
