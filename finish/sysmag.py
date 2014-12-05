@@ -27,6 +27,7 @@ class fitresult(object):
                        ('eltrig',('el0','el1')),
                        ('PT', ('PT','PT')),
                        ('Modeling', ('_calmn000','_calmn000')),
+                       #('Modeling', ('_alttt-mn','_alttt-mn')), #should be this!!!
                        ('MC statistics',('','')),
                    ]))
     labels = sum(pairs.values(),())

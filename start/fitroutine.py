@@ -65,13 +65,12 @@ class fit(object):
                 for part in ['top','QCD']:
                     chan = inputs.channel_data(lep, part, tag, signal, sigPre, "R%02d" %(R0_ + dirIncrement),
                                                genDirPre, prePre=prePre, rebin=rebin, no3D=no3D,
-                                               only3D=(twoStage and fixSM), sampleList=["calib_%s.pu.sf"%alttt])
-                    channels[(lep,part)].samples['tt'] = chan.samples['ttalt']
+                                               only3D=(twoStage and fixSM), sampleList=["calib_%s.pu.sf"%alttt if 'q' not in alttt else 'ttj_%s.pu.sf'%alttt])
             chan = inputs.channel_data('mu','top', tag,
                                        '%s_%s'%(genNameX,genNameY),
                                        sigPrefix = '',
                                        dirPrefix=genDirPre, genDirPre=genDirPre,
-                                       prePre = prePre, sampleList=["calib_%s.pu.sf"%alttt], fullDir = '')
+                                       prePre = prePre, sampleList=["calib_%s.pu.sf"%alttt if 'q' not in alttt else 'ttj_%s.pu.sf'%alttt], fullDir = '')
             channels['gen'].samples['tt'] = chan.samples['ttalt']
 
         if diffR0_ :
