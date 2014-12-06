@@ -17,6 +17,7 @@ class fit(object):
                  only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False, twossigma={}):
 
         np.random.seed(1981)
+        if alttt and label[:7]=='central': label = alttt + label
         for item in ['label','quiet','fixSM','only','nobg'] : setattr(self,item,eval(item))
         self.log = log if log else sys.stdout
 
