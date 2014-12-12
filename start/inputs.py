@@ -58,7 +58,7 @@ class channel_data(object):
 
     def __init__(self, lepton, partition, tag = 'ph_sn_jn_20',
                  signal="", sigPrefix="", dirPrefix="R04", genDirPre="R01",
-                 prePre = False, templateID=None, d_wbb=0, sampleList=[], rename=True, rebin=False, no3D=False, only3D=False, fullDir=None):
+                 prePre = False, templateID=None, d_wbb=0, sampleList=[], rename=True, rebin=False, no3D=False, only3D=False, fullDir=None, Rst=None):
         filePattern="data/stats_%s_%s_%s.root"
         tfile = r.TFile.Open(filePattern % (partition, lepton, tag))
         self.templateID = templateID
@@ -68,6 +68,7 @@ class channel_data(object):
         self.rebin = rebin
         self.no3D = no3D
         self.only3D = only3D
+        self.Rst = Rst
 
         def full(pf) :
             return next((ky.GetName() + '/' for ky in tfile.GetListOfKeys()
@@ -104,6 +105,20 @@ class channel_data(object):
 
         data = get('/' + s,paths).Clone(self.lepton + '_' + s)
         data.SetDirectory(0)
+        if self.Rst and s=='st':
+            R = self.Rst
+            T = get( 't', prepaths).Integral()
+            T_ = get( 't_', prepaths).Integral()
+            t = get('/'+ 't', paths)
+            t_= get('/'+ 't_', paths)
+            #print T, T_, (T+T_), R
+            TT = R*(T+T_)/(R+1)
+            TT_ = (T+T_) / (R+1)
+            #print TT, TT_, (T+T_), TT/TT_
+            #print data.Integral()
+            data.Add(t_, (TT_-T_) / T_)
+            data.Add(t, (TT-T) / T)
+            #print data.Integral()
         if self.rebin: data.RebinX(5)
         if self.no3D: data.RebinY(5)
         elif self.only3D: data.RebinX(data.GetNbinsX())

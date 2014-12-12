@@ -14,7 +14,7 @@ class fit(object):
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
                  log=None, fixSM=False, altData=None, lumiFactor=1.0,
-                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False, twossigma={}):
+                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False, twossigma={}, Rst=None):
 
         np.random.seed(1981)
         if alttt and label[:7]=='central': label = alttt + label
@@ -23,7 +23,7 @@ class fit(object):
 
         parNames = ['label','signal','R0_','d_lumi','d_xs_dy','d_xs_st','tag','genPre','sigPre',
                     'dirIncrement','genDirPre','d_wbb','quiet','templateID','defaults','log','fixSM',
-                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan','twossigma']
+                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan','twossigma','Rst']
 
         self.pars = dict([(p,eval(p)) for p in parNames])
         print>>log, sorted(self.pars.items())
@@ -50,7 +50,7 @@ class fit(object):
                           inputs.channel_data(lep, part, tag, signal, sigPre,
                                               "R%02d" % (R0_ + dirIncrement),
                                               genDirPre, prePre=prePre, templateID=templateID,
-                                              d_wbb = d_wbb, rebin=rebin, no3D=no3D, only3D=(twoStage and fixSM)))
+                                              d_wbb = d_wbb, rebin=rebin, no3D=no3D, only3D=(twoStage and fixSM), Rst=Rst))
                          for lep in ['el', 'mu']
                          for part in ['top', 'QCD']
                          ])

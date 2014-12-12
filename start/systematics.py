@@ -59,6 +59,9 @@ def systematics():
             {'label': 'ST_up', "d_xs_st": +0.20},
             {'label': 'ST_dn', "d_xs_st": -0.20},
 
+            {'label': 'RT_up', "Rst":2.0},
+            {'label': 'RT_dn', "Rst":1.5},
+
             {'label': 'WJ_up', 'twossigma': {'d_xs_wj': +1.0}},
             {'label': 'WJ_dn', 'twossigma': {'d_xs_wj': -1.0}},
 
