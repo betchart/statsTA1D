@@ -59,8 +59,8 @@ def systematics():
             {'label': 'ST_up', "d_xs_st": +0.20},
             {'label': 'ST_dn', "d_xs_st": -0.20},
 
-            {'label': 'RT_up', "Rst":2.0},
-            {'label': 'RT_dn', "Rst":1.5},
+            {'label': 'RT_up', "Rst":2.0},  # from https://cds.cern.ch/record/1528574
+            {'label': 'RT_dn', "Rst":1.5},  # Rt-ch. = sigma(t-ch., top) / sigma(t-ch., anti-top) = 1.76 +/- 0.27
 
             {'label': 'WJ_up', 'twossigma': {'d_xs_wj': +1.0}},
             {'label': 'WJ_dn', 'twossigma': {'d_xs_wj': -1.0}},
