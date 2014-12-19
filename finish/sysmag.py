@@ -26,9 +26,9 @@ class fitresult(object):
                        ('elid',('el2','el3')),
                        ('eltrig',('el0','el1')),
                        ('PT', ('PT','PT')),
+                       ('BTAG',('BTAG','BTAG')),
                        ('Q2', ('qdcentral','qucentral')),
                        ('Modeling', ('mncentral','mncentral')),
-                       #('Modeling', ('_calmn000','_calmn000')),
                        ('MC statistics',('','')),
                    ]))
     labels = sum(pairs.values(),())

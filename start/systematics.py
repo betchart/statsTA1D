@@ -36,6 +36,8 @@ def central():
 
 def systematics():
     sys =  ([
+            {'label': 'BTAG', 'partsuffix': 'SF'},
+
             {'label': 'JER_up', 'tag': 'ph_su_jn_20'},
             {'label': 'JER_dn', 'tag': 'ph_sd_jn_20'},
 

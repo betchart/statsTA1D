@@ -14,7 +14,8 @@ class fit(object):
                  d_lumi, d_xs_dy, d_xs_st, tag, genPre, sigPre, dirIncrement, genDirPre, d_wbb,
                  quiet = False, templateID=None, defaults = {},
                  log=None, fixSM=False, altData=None, lumiFactor=1.0,
-                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False, twossigma={}, Rst=None):
+                 only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False, twossigma={}, Rst=None,
+                 partsuffix=''):
 
         np.random.seed(1981)
         if alttt and label[:7]=='central': label = alttt + label
@@ -23,7 +24,7 @@ class fit(object):
 
         parNames = ['label','signal','R0_','d_lumi','d_xs_dy','d_xs_st','tag','genPre','sigPre',
                     'dirIncrement','genDirPre','d_wbb','quiet','templateID','defaults','log','fixSM',
-                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan','twossigma','Rst']
+                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan','twossigma','Rst', 'partsuffix']
 
         self.pars = dict([(p,eval(p)) for p in parNames])
         print>>log, sorted(self.pars.items())
@@ -47,14 +48,14 @@ class fit(object):
         else: diffR0_ = None
         prePre = dirIncrement in [0,4,5]
         channels = dict([((lep,part),
-                          inputs.channel_data(lep, part, tag, signal, sigPre,
+                          inputs.channel_data(lep, part+partsuffix, tag, signal, sigPre,
                                               "R%02d" % (R0_ + dirIncrement),
                                               genDirPre, prePre=prePre, templateID=templateID,
                                               d_wbb = d_wbb, rebin=rebin, no3D=no3D, only3D=(twoStage and fixSM), Rst=Rst))
                          for lep in ['el', 'mu']
                          for part in ['top', 'QCD']
                          ])
-        channels['gen'] = inputs.channel_data('mu', 'top', tag,
+        channels['gen'] = inputs.channel_data('mu', 'top'+partsuffix, tag,
                                               '%s; %s'%(genNameX,genNameY),
                                               sigPrefix = sigPre if dirIncrement in [0,4,5] else '',
                                               dirPrefix=genDirPre, genDirPre=genDirPre,
@@ -64,10 +65,10 @@ class fit(object):
             print 'Using %s templates rather than POWHEG' % alttt
             for lep in ['el', 'mu']:
                 for part in ['top','QCD']:
-                    chan = inputs.channel_data(lep, part, tag, signal, sigPre, "R%02d" %(R0_ + dirIncrement),
+                    chan = inputs.channel_data(lep, part+partsuffix, tag, signal, sigPre, "R%02d" %(R0_ + dirIncrement),
                                                genDirPre, prePre=prePre, rebin=rebin, no3D=no3D,
                                                only3D=(twoStage and fixSM), sampleList=["calib_%s.pu.sf"%alttt if 'q' not in alttt else 'ttj_%s.pu.sf'%alttt])
-            chan = inputs.channel_data('mu','top', tag,
+            chan = inputs.channel_data('mu','top'+partsuffix, tag,
                                        '%s_%s'%(genNameX,genNameY),
                                        sigPrefix = '',
                                        dirPrefix=genDirPre, genDirPre=genDirPre,
@@ -79,7 +80,7 @@ class fit(object):
             for lepPart,chan in channels.items():
                 if type(lepPart) != tuple: continue
                 lep,part = lepPart
-                chan.subtract(inputs.channel_data(lep,part,tag,signal,sigPre,
+                chan.subtract(inputs.channel_data(lep,part+partsuffix,tag,signal,sigPre,
                                                   "R%02d" % (diffR0_ + dirIncrement),
                                                   genDirPre, prePre = prePre, rebin=rebin ))
 
