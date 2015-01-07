@@ -38,6 +38,9 @@ def systematics():
     sys =  ([
             {'label': 'BTAG', 'partsuffix': 'SF'},
 
+            {'label':'QCDx', 'partsuffix': 'x'},
+            {'label':'QCDs', 'symmQCD': True},
+
             {'label': 'JER_up', 'tag': 'ph_su_jn_20'},
             {'label': 'JER_dn', 'tag': 'ph_sd_jn_20'},
 

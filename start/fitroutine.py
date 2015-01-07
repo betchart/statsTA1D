@@ -15,7 +15,7 @@ class fit(object):
                  quiet = False, templateID=None, defaults = {},
                  log=None, fixSM=False, altData=None, lumiFactor=1.0,
                  only="", nobg="", rebin=False, no3D=False, twoStage=False, fixedValues={}, alttt=None, sepchan=False, twossigma={}, Rst=None,
-                 partsuffix=''):
+                 partsuffix='', symmQCD=False):
 
         np.random.seed(1981)
         if alttt and label[:7]=='central': label = alttt + label
@@ -24,7 +24,7 @@ class fit(object):
 
         parNames = ['label','signal','R0_','d_lumi','d_xs_dy','d_xs_st','tag','genPre','sigPre',
                     'dirIncrement','genDirPre','d_wbb','quiet','templateID','defaults','log','fixSM',
-                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan','twossigma','Rst', 'partsuffix']
+                    'altData','lumiFactor','only','nobg','rebin','no3D','twoStage', 'alttt','sepchan','twossigma','Rst', 'partsuffix','symmQCD']
 
         self.pars = dict([(p,eval(p)) for p in parNames])
         print>>log, sorted(self.pars.items())
@@ -55,6 +55,13 @@ class fit(object):
                          for lep in ['el', 'mu']
                          for part in ['top', 'QCD']
                          ])
+        if symmQCD:
+            for lep in ['el','mu']:
+                for samp in channels[(lep,'QCD')].samples.values():
+                    samp.datas = (samp.datas[1],samp.datas[1],samp.datas[2])
+                    samp.datasX = (samp.datasX[1],samp.datasX[1],samp.datasX[2])
+                    samp.datasY = (samp.datasY[1],samp.datasY[1],samp.datasY[2])
+
         channels['gen'] = inputs.channel_data('mu', 'top'+partsuffix, tag,
                                               '%s; %s'%(genNameX,genNameY),
                                               sigPrefix = sigPre if dirIncrement in [0,4,5] else '',

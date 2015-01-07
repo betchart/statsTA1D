@@ -27,6 +27,8 @@ class fitresult(object):
                        ('eltrig',('el0','el1')),
                        ('PT', ('PT','PT')),
                        ('BTAG',('BTAG','BTAG')),
+                       #('symmshape',('QCDs','QCDs')),
+                       ('shape',('QCDx','QCDx')),
                        ('Q2', ('qdcentral','qucentral')),
                        ('Modeling', ('mncentral','mncentral')),
                        ('MC statistics',('','')),
@@ -118,6 +120,8 @@ if __name__ == '__main__':
                 ('Modeling', r'$\ttbar$ modeling'),
                 ('QCDe',r'$F^e_{\MJ}$'),
                 ('QCDm',r'$F^\mu_{\MJ}$'),
+                ('symmshape',r'symmshape'),
+                ('shape',r'shape'),
                 ('Q',r'$Q^2$ scale')
                  ]
         def rep(key,ps):
