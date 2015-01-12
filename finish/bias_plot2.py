@@ -93,7 +93,7 @@ class bias_plot(object):
         #ax.axhspan( 100*(fit-sigma), 100*(fit+sigma), alpha=0.2, fc='k', hatch='')
         #ax.axhspan( 100*(fit-0.0039), 100*(fit+0.0039), alpha=0.15, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{sys}$')
 
-        sys = {'mcstat':0.232, 'modeling': 0.075, 'pdf': 0.020, 'scale': 0.001}
+        sys = {'mcstat':0.149, 'modeling': 0.017, 'pdf': 0.017, 'scale': 0.131}
         sys_th = math.sqrt(sum(s*s for s in sys.values()))
         ax.axhspan( -sys_th, sys_th, alpha=0.15, fc='k', hatch='', label=r'Theory Systematics')
 
@@ -102,15 +102,17 @@ class bias_plot(object):
 
         labelsfonts = {'fontsize':11}
         ax.text(-0.4, 0.15, 'madgraph', labelsfonts, ha='right')
-        ax.text(0.15, 0.255, r"$Z'$", labelsfonts, ha='right')
+        ax.text(0.15, 0.4, r"$Z'$", labelsfonts, ha='right')
         #ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.05, 'shrink':0.2, 'headwidth':2}, fontsize=8)
-        ax.text(0.4, -0.135, 'mc@nlo', labelsfonts, ha='right')
+        ax.text(0.4, -0.19, 'mc@nlo', labelsfonts, ha='right')
         #ax.text(0.65, 0.45, 'RIGHT', labelsfonts)
         #ax.text(0.5, 0.7, 'left', labelsfonts, ha='right')
         #ax.text(1.15, 0.9, 'AXIAL', labelsfonts)
         #ax.text(1.65, 1.3, 'axial', labelsfonts)
 
-        pp = PdfPages('output/bias_plot2.pdf')
+        output = 'output/bias_plot2.pdf'
+        pp = PdfPages(output)
+        print 'Wrote:', output
         pp.savefig(fig)
         pp.close()
 
