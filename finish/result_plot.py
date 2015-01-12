@@ -38,7 +38,8 @@ class bias_plot(object):
         ax.text(just, 0, 'CMS unfold 8TeV', ha='right')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
-        sigmaboth = 0.0039
+        print fit,sigma
+        sigmaboth = 0.0041
         ax.axvspan( -100, -99, alpha=0.2, fc='k', hatch='', label=r'$68\%$ CI')
         ax.axvspan( 100*(fit-sigmaboth), 100*(fit+sigmaboth), alpha=0.1, fc='k', hatch='')
         ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%$ CI')

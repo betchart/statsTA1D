@@ -61,6 +61,7 @@ class nll_plot(object):
         ax2.set_xlim(-300*tree.scale, 300*tree.scale)
 
         for i,tree in enumerate(trees):
+            print tree.fit, tree.sigma
             fit = tree.fit / tree.scale
             sig = tree.sigma / tree.scale
             kwargs = {'length_includes_head':True, 'fc':['k','none'][i],'ec':'k','linestyle':['solid','dashed'][i], 'head_width':0.06, 'head_length':0.03}
@@ -96,7 +97,9 @@ class nll_plot(object):
         ax.legend(loc='lower left').draw_frame(False)
         #plt.show()
 
-        pp = PdfPages('output/nll_plot.pdf')
+        output = 'output/nll_plot.pdf'
+        pp = PdfPages(output)
+        print 'Wrote:', output
         pp.savefig(fig)
         pp.close()
 

@@ -85,7 +85,9 @@ class bias_plot(object):
         ax.text(1.15, 0.9, 'AXIAL', labelsfonts)
         ax.text(1.65, 1.3, 'axial', labelsfonts)
 
-        pp = PdfPages('output/bias_plot.pdf')
+        output = 'output/bias_plot.pdf'
+        pp = PdfPages(output)
+        print 'Wrote:', output
         pp.savefig(fig)
         pp.close()
 
