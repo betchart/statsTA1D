@@ -219,13 +219,14 @@ class topModel(object):
         roo.wimport(w, r.RooDataHist('data', 'N_{obs}', obs,
                                      r.RooFit.Index(w.arg('channel')), *args))
 
-    def print_n(self,logfile):
+    def print_n(self,logfile,qcd=False):
         scale = 1000.
         w = self.w
         length = 24
 
-        chans = ['el','mu']
-        cross = ['tt', 'wj', 'mj', 'st', 'dy']
+        chans = [c+('qcd' if qcd else '') for c in ['el','mu']]
+        cross = ['tt', 'wj', 'mj', 'st', 'dy'] if not qcd else ['tt','wj','st','data']
+        if qcd: print>>logfile, 'Sideband!!'
         print>>logfile, '\t','&','\t&\t'.join(r'\multicolumn{2}{c}{N_{%s}}'%xs for xs in cross), 'Total', 'Observed'
         strings = {}
         for chan in chans:
@@ -235,15 +236,17 @@ class topModel(object):
             for xs in cross:
                 val = w.arg('expect_%s_%s' % (chan, xs)).getVal()
                 delta = w.arg('d_xs_%s'%xs)
-                factor= w.arg('factor_%sqcd'%chan)
+                factor= w.arg('factor_%sqcd'%(chan.replace('qcd','')))
+                #if qcd: val /= ([-1,1][xs=='data']*factor.getVal())
                 relerr = max(0.0000001,
                              delta.getError() / (1+delta.getVal()) if delta else
                              factor.getError() / factor.getVal() if xs=='mj' else 0)
                 tot += val
                 tote2 += (val*relerr)**2
                 strings[chan].append(lib.roundString(val/scale,relerr*val/scale).rjust(length / 3))
-            strings[chan].append( lib.roundString(tot/scale,math.sqrt(tote2)/scale).rjust(length / 3))
-            strings[chan].append( str(self.channels[chan].samples['data'].datas[0].Integral()/scale) + r' \\')
+            if not qcd:
+                strings[chan].append( lib.roundString(tot/scale,math.sqrt(tote2)/scale).rjust(length / 3))
+                strings[chan].append( str(self.channels[chan].samples['data'].datas[0].Integral()/scale) + r' \\')
             print>>logfile, ' & '.join(strings[chan])
         print>>logfile
 

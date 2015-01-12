@@ -110,6 +110,7 @@ class fit(object):
         elif twoStage: self.doTwoStage()
         else: self.doFit()
         self.model.print_n(self.log)
+        self.model.print_n(self.log,qcd=True)
 
 
     @roo.quiet
