@@ -27,8 +27,9 @@ class fitresult(object):
                        ('eltrig',('el0','el1')),
                        ('PT', ('PT','PT')),
                        ('BTAG',('BTAG','BTAG')),
-                       #('symmshape',('QCDs','QCDs')),
-                       ('shape',('QCDx','QCDx')),
+                       #('elsymmshape',('','')), # ('QCDs','QCDs')
+                       #('musymmshape',('','')), # ('QCDs','QCDs')
+                       #('shape',('QCDx','QCDx')),
                        ('Q2', ('qdcentral','qucentral')),
                        ('Modeling', ('mncentral','mncentral')),
                        ('MC statistics',('','')),
@@ -44,6 +45,7 @@ class fitresult(object):
         self.sfile = r.TFile.Open('%s_sys_with_model.root'%base)
         self.cfile = r.TFile.Open('%s.root'%base)
         self.tfile = r.TFile.Open('%s_t.root'%base)
+        #self.tfile = r.TFile.Open('%s_t_nodata.root'%base)
         self.strees = self.getTrees(self.sfile)
         self.ctrees = self.getTrees(self.cfile)
         self.ttrees = self.getTrees(self.tfile)
@@ -61,6 +63,13 @@ class fitresult(object):
     def sigma_mcStat(self):
         return math.sqrt( sum([self.delta(e,m)**2 for e,m in izip(self.ttrees['el'],self.ttrees['mu'])]) / self.ttrees['el'].GetEntries() )
 
+    def symmshape(self,lep):
+        other = 'mu' if lep=='el' else 'el'
+        for e in self.strees[lep]: print e.label
+        QCDs = next( e for e in self.strees[lep] if e.label[:4] == 'QCDs' )
+        return self.delta( QCDs if lep=='el' else self.ctrees[other],
+                           QCDs if lep=='mu' else self.ctrees[other])
+
     def extract(self):
         self.values = {}
         for e,m in izip(self.strees['el'],self.strees['mu']):
@@ -71,6 +80,8 @@ class fitresult(object):
         self.order = sorted(self.values, key = lambda k: self.values[k], reverse=True)
         self.pvalues = dict([(name, math.sqrt(0.5*(self.values[a]**2 + self.values[b]**2))) for name,(a,b) in self.pairs.items() if a])
         self.pvalues['MC stat.'] = self.sigma_mcStat
+        if 'elsymmshape' in self.pvalues: self.pvalues['elsymmshape'] = self.symmshape('el')
+        if 'musymmshape' in self.pvalues: self.pvalues['musymmshape'] = self.symmshape('mu')
         self.pvalues['PDF'] = math.sqrt(sum(x**2 for L,x in self.pvalues.items() if 'PD' in L))
         for key in list(self.pvalues):
             if 'PD:' in key: del self.pvalues[key]
