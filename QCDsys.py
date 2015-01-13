@@ -6,6 +6,9 @@ from start.systematics import partitions, measurement_pars
 import ROOT as r
 r.gROOT.SetBatch(1)
 r.gStyle.SetOptStat(0)
+r.gROOT.ProcessLine(".L lib/tdrstyle.C")
+r.setTDRStyle()
+r.TGaxis().SetMaxDigits(3)
 
 fracs = {'el':{'tt':0.170,
                'st':0.011,
@@ -36,8 +39,8 @@ class QCDsys(object):
 
 
         fname = 'qcdtemplates.pdf'
-        y = 0.05
-        c = r.TCanvas()
+        y = 0.01
+        c = r.TCanvas('','',800,400)
         c.Divide(2,1)
         c.Print(fname + '[')
         for lep,chan in channels.items():
@@ -65,15 +68,24 @@ class QCDsys(object):
             template.Scale(1./template.Integral())
             tsymm,tanti = lib.symmAnti(template)
             c.cd(1)
-            tsymm.SetTitle(lep+'_qcd')
+            labels = {'el':'e','mu':'#mu'}
+            tsymm.UseCurrentStyle()
+            tanti.UseCurrentStyle()
+            tsymm.SetMarkerStyle(0)
+            tanti.SetMarkerStyle(0)
+            tsymm.SetTitle(";%s+jets mj, symmetrized X_{L};(1/#sigma)#left(#partial#sigma / #partial^{}X_{L}#right)"%labels[lep])
+            tanti.SetTitle(";%s+jets mj, antisymmetrized X_{L};(1/#sigma)#left(#partial#sigma / #partial^{}X_{L}#right)"%labels[lep])
+            tanti.SetBinError(3,0)
             tsymm.SetLineColor(r.kRed)
             tanti.SetLineColor(r.kRed)
             tsymm.SetMinimum(0)
             tanti.SetMinimum(-y)
             tanti.SetMaximum(y)
-            tsymm.Draw()
+            tsymm.GetXaxis().SetNdivisions(-5)
+            tanti.GetXaxis().SetNdivisions(-5)
+            tsymm.Draw('histe')
             c.cd(2)
-            tanti.Draw()
+            tanti.Draw('histe')
             c.Print(fname)
             
         c.Print(fname + ']')
