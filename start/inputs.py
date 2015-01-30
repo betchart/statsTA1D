@@ -122,8 +122,8 @@ class channel_data(object):
         if self.rebin: data.RebinX(5)
         if self.no3D: data.RebinY(5)
         elif self.only3D: data.RebinX(data.GetNbinsX())
-        #if s not in ['data'] or 'QCD' in tfile.GetName() : self.jiggle(data)
-        if s not in ['data']: self.jiggle(data)
+        if s not in ['data'] or 'QCD' in tfile.GetName() : self.jiggle(data)
+        #if s not in ['data']: self.jiggle(data)
 
         xs = tfile.Get('xsHisto/' + s).GetBinContent(1) if s != 'data' else None
         if s=='tt': xs/=4.0 # magic number hack fix for incorrect xs in data files.  4 for 4 sources of tt: {gg, qq_, gq, gq_}

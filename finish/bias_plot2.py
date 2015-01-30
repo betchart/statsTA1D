@@ -93,7 +93,7 @@ class bias_plot(object):
         #ax.axhspan( 100*(fit-sigma), 100*(fit+sigma), alpha=0.2, fc='k', hatch='')
         #ax.axhspan( 100*(fit-0.0039), 100*(fit+0.0039), alpha=0.15, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{sys}$')
 
-        sys = {'mcstat':0.149, 'modeling': 0.017, 'pdf': 0.017, 'scale': 0.131}
+        sys = {'mcstat':0.153, 'modeling': 0.017, 'pdf': 0.018, 'scale': 0.136}
         sys_th = math.sqrt(sum(s*s for s in sys.values()))
         ax.axhspan( -sys_th, sys_th, alpha=0.15, fc='k', hatch='', label=r'Theory Systematics')
 

@@ -39,7 +39,7 @@ class bias_plot(object):
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
-        sigmaboth = 0.0041
+        sigmaboth = 0.0042
         ax.axvspan( -100, -99, alpha=0.2, fc='k', hatch='', label=r'$68\%$ CI')
         ax.axvspan( 100*(fit-sigmaboth), 100*(fit+sigmaboth), alpha=0.1, fc='k', hatch='')
         ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%$ CI')

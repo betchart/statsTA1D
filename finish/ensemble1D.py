@@ -33,7 +33,7 @@ class ensemble1D(object):
             permil = '#circ#kern[-0.2]{#/}#kern[-0.6]{#lower[0.4]{#circ#circ}}'
             meanbook.fill(alpha,label, 30, e.gen_alpha - 1.5, e.gen_alpha+1.5, title=';#alpha')
             pullbook.fill( (fit-gen_fit)/sigma, label, 30, -5, 5, title = ';#Delta/#sigma')
-            sigmbook.fill( sigma, label, 30, 2.15/1000, 2.85/1000, title = ';#sigma')
+            sigmbook.fill( sigma, label, 60, 2.54/1000, 2.62/1000, title = ';#sigma')
             nlle = -3365000
             nllm = -3525000
             nlldelta = 30000
