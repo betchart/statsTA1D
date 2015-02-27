@@ -95,6 +95,9 @@ class nll_plot(object):
         for (f,s),c,L in predictions:
             ax.axvspan( f-s, f+s, alpha=0.6, fc=c, ec=c, label=L)
 
+        ax.text(-2.85, 1.85, "CMS", fontsize=18)
+        ax.text(-2.85, 1.7, "$\mathrm{19.6\ fb}^{-1}\ (\mathrm{8\ TeV})$", fontsize=15)
+
         ax.legend(loc='lower left').draw_frame(False)
         #plt.show()
 
