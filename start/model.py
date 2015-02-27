@@ -359,8 +359,14 @@ class topModel(object):
             lumistamp.SetTextFont(42)
             lumistamp.SetNDC()
 
+            leptonstamp = r.TLatex(0.2, 0.84, "%s+jets"%({"el":"e", "mu":"#mu"}[lep]))
+            leptonstamp.SetNDC()
+            leptonstamp.SetTextFont(42)
+            leptonstamp.SetTextSize(0.04)
+
             cmsstamp = r.TText(0.2, 0.89, "CMS")
             cmsstamp.SetNDC()
+
             
             for axis in (['Y','X'] if twoStage else [None]):
                 model = proj(hist, axis)
@@ -378,11 +384,22 @@ class topModel(object):
                 leg.SetNColumns(1+len(stackers))
                 leg.SetTextFont(42)
                 
-                leg.AddEntry(data[i][0], 'Data', 'P')
+                leg.AddEntry(data[i][0], 'Data', 'PE')
                 replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"multijet", "st+dy":"t/#bar{t}, Z/#gamma*"}
                 for name,h in zip(stacknames,stackers)[::-1]:
                     leg.AddEntry(h, replacements[name],'f')
-                    
+
+                leg2 = r.TLegend(0.5, 0.3, 0.95, 0.345)
+                leg2.SetBorderSize(0)
+                leg2.SetFillColor(0)
+                leg2.SetTextFont(42)
+
+                leg3 = r.TLegend(0.5, 0.2, 0.95, 0.4)
+                leg3.SetBorderSize(0)
+                leg3.SetFillColor(0)
+                leg3.SetTextFont(42)
+
+                
                 for i in range(nY):
                     if not twoStage: canvas.cd(i+1)
                     for c in comps: 
@@ -392,8 +409,8 @@ class topModel(object):
                     data[i][0].SetMinimum(0)
                     data[i][0].SetMaximum(maximum)
                     data[i][0].GetYaxis().SetTitle('Events / 0.4')
-                    data[i][0].GetXaxis().SetNdivisions(5,False)
                     data[i][0].GetXaxis().SetTitleOffset(0.75)
+                    data[i][0].GetXaxis().SetNdivisions(5,False)
                     data[i][0].Draw()
                     model[i][0].Draw('hist same')
                     hstack[i].Draw('hist same')
@@ -401,6 +418,7 @@ class topModel(object):
                     leg.Draw()
                     lumistamp.Draw()
                     cmsstamp.Draw()
+                    leptonstamp.Draw()
                     
                     if axis=='Y': continue
                     if twoStage:
@@ -411,6 +429,7 @@ class topModel(object):
                             h[i][1].ResetAttFill()
                         else:
                             h[i][1].GetYaxis().SetTitle('Events / 0.4')
+                            h[i][1].GetXaxis().SetTitleOffset(0.75)
                             h[i][1].GetXaxis().SetNdivisions(5,False)
                         h[i][1].SetMinimum(-amaximum)
                         h[i][1].SetMaximum(amaximum)
@@ -419,7 +438,14 @@ class topModel(object):
                     model[i][1].SetLineWidth(4)
                     model[i][1].SetLineColor(r.kBlue)
                     model[i][1].Draw('hist same')
+                    leg2.AddEntry(model[i][1], "Fit Model", "l")
+                    data[i][1].SetBinError(3,1)
                     data[i][1].Draw('same')
+                    leg.Draw()
+                    leg2.Draw()
+                    lumistamp.Draw()
+                    cmsstamp.Draw()
+                    leptonstamp.Draw()
                     if not twoStage: continue
                     canvas.Print(printName)
                     
@@ -427,6 +453,7 @@ class topModel(object):
                     modelM[i][1].SetLineColor(r.kBlue); modelM[i][1].SetLineStyle(r.kDotted); modelM[i][1].SetLineWidth(2)
 
                     model[i][1].GetYaxis().SetTitle('Events / 0.4')
+                    model[i][1].GetXaxis().SetTitleOffset(0.75)
                     model[i][1].GetXaxis().SetNdivisions(5,False)
                     model[i][1].SetMinimum(-amaximum)
                     model[i][1].SetMaximum(amaximum)
@@ -434,6 +461,14 @@ class topModel(object):
                     modelP[i][1].Draw('hist same')
                     modelM[i][1].Draw('hist same')
                     data[i][1].Draw('same')
+                    leg3.AddEntry(data[i][1], "Data", "PE")
+                    leg3.AddEntry(model[i][1], "Fit Model", "l")
+                    leg3.AddEntry(modelP[i][1], "Fit Model upper 68% CL", "l")
+                    leg3.AddEntry(modelM[i][1], "Fit Model lower 68% CL", "l")
+                    lumistamp.Draw()
+                    cmsstamp.Draw()
+                    leptonstamp.Draw()
+                    leg3.Draw()
                     canvas.Print(printName)
 
                     bgsubX = bgsub.ProjectionX()
