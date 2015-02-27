@@ -300,7 +300,7 @@ class topModel(object):
     @roo.quiet
     def visualize(self, printName='', nobg="", twoStage=False):
         w = self.w
-        titles = ['X_{%s}'%self.observables[0][1],'{}^{#Delta}']
+        titles = ['X_{%s}'%self.observables[0][1],'#Delta']
         for v,t in zip(self.observables,titles) :
             w.arg(v).SetTitle(t)
 
@@ -330,13 +330,14 @@ class topModel(object):
             if not self.quiet:
                 print self.channels[lep].samples.keys()
             hists = dict([(s, self.expected_histogram(lep+'_'+s+('_both' if s in ['wj','st'] else '_symm' if s=='dy' else ''),
-                                                 w.arg('expect_%s_%s'%(lep,s)).getVal()))
+                                                      w.arg('expect_%s_%s'%(lep,s)).getVal()))
                      for s in self.channels[lep].samples if s not in ['data']])
             hists['mj'] = self.expected_histogram(lep+'_mj', w.arg('expect_%s_mj'%lep).getVal())
 
             stack = [('tt',),('wj',),('mj',), ('st','dy')][::-1]
             colors = [r.kViolet,r.kGreen+1,r.kRed,r.kGray][::-1]
             stackers = []
+            stacknames = []
             for s,c in zip(stack,colors)[-1 if nobg else 0:]:
                 h = hists[s[0]]
                 for n in s[1:]:
@@ -345,7 +346,8 @@ class topModel(object):
                 h.SetFillColor(c)
                 h.SetLineColor(c)
                 stackers.append(h)
-
+                stacknames.append('+'.join(s))
+                
             def proj(h, axis=None): 
                 if twoStage:
                     oneD = getattr(h,'Projection'+axis)()
@@ -353,6 +355,13 @@ class topModel(object):
                 else:
                     return [lib.symmAnti(hist) for hist in self.proj(h)]
 
+            lumistamp = r.TLatex(0.65, 0.96, "19.6 fb^{-1} (8 TeV)")
+            lumistamp.SetTextFont(42)
+            lumistamp.SetNDC()
+
+            cmsstamp = r.TText(0.2, 0.89, "CMS")
+            cmsstamp.SetNDC()
+            
             for axis in (['Y','X'] if twoStage else [None]):
                 model = proj(hist, axis)
                 modelP = proj(histP, axis)
@@ -362,6 +371,18 @@ class topModel(object):
                 hstack = [r.THStack('stack%d'%i,'') for i in range(nY)]
                 maximum = 1.1 * max(d[0].GetMaximum() for d in data)
                 amaximum = 1.2 * max([max(abs(h[1].GetMaximum()),abs(h[1].GetMinimum())) for hs in [data,model,modelP,modelM] for h in hs])
+
+                leg = r.TLegend(0.05,0.01,0.92,0.06)
+                leg.SetBorderSize(0)
+                leg.SetFillColor(r.kWhite)
+                leg.SetNColumns(1+len(stackers))
+                leg.SetTextFont(42)
+                
+                leg.AddEntry(data[i][0], 'Data', 'P')
+                replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"multijet", "st+dy":"t/#bar{t}, Z/#gamma*"}
+                for name,h in zip(stacknames,stackers)[::-1]:
+                    leg.AddEntry(h, replacements[name],'f')
+                    
                 for i in range(nY):
                     if not twoStage: canvas.cd(i+1)
                     for c in comps: 
@@ -372,11 +393,15 @@ class topModel(object):
                     data[i][0].SetMaximum(maximum)
                     data[i][0].GetYaxis().SetTitle('Events / 0.4')
                     data[i][0].GetXaxis().SetNdivisions(5,False)
+                    data[i][0].GetXaxis().SetTitleOffset(0.75)
                     data[i][0].Draw()
                     model[i][0].Draw('hist same')
                     hstack[i].Draw('hist same')
                     data[i][0].Draw('same')
-    
+                    leg.Draw()
+                    lumistamp.Draw()
+                    cmsstamp.Draw()
+                    
                     if axis=='Y': continue
                     if twoStage:
                         canvas.Print(printName)
