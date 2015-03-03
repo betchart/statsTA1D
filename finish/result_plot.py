@@ -6,6 +6,8 @@ from itertools import izip
 import ROOT as r
 import math
 
+unfold = False
+
 import matplotlib
 class bias_plot(object):
     def __init__(self, trees, treesA, treesC):
@@ -18,7 +20,7 @@ class bias_plot(object):
         lw = 1.3
         fig = plt.figure(figsize=(6.5,6.5))
         ax = fig.add_subplot(111)
-        ax.set_ylim(-4.5,1.5)
+        ax.set_ylim(-4.5,0.5 +[0,1][unfold])
         ax.set_xlim(-2,2)
         ax.set_xlabel(r'$A_c^y (\%)$', fontsize=fs)
         #ax.set_xlabel(r'$A_c^y (\%)$ : Calculated', fontsize=fs)
@@ -34,8 +36,9 @@ class bias_plot(object):
             bookC.fill( fit*100, "mean_"+label, 100, (e.gen_Ac-e.scale)*100, (e.gen_Ac+e.scale)*100)
 
         lw = 2
-        ax.errorbar( 0.5, 0, xerr=math.sqrt(0.7**2+0.6**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, )
-        ax.text(just, 0, 'CMS unfold 8TeV', ha='right')
+        if unfold:
+            ax.errorbar( 0.5, 0, xerr=math.sqrt(0.7**2+0.6**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, )
+            ax.text(just, 0, 'CMS unfold 8TeV', ha='right')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
@@ -43,8 +46,8 @@ class bias_plot(object):
         ax.axvspan( -100, -99, alpha=0.2, fc='k', hatch='', label=r'$68\%$ CI')
         ax.axvspan( 100*(fit-sigmaboth), 100*(fit+sigmaboth), alpha=0.1, fc='k', hatch='')
         ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%$ CI')
-        ax.errorbar( [100*fit], [1], xerr=100*sigmaboth, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-        ax.text(just, 1, 'CMS template 8TeV', ha='right')
+        ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
+        ax.text(just, [0,1][unfold], 'CMS template 8TeV', ha='right')
 
         PHerr = 0.0009*100
         PH = (tree.scale*100, PHerr)
@@ -78,9 +81,11 @@ class bias_plot(object):
 
         ax.legend(loc='upper right', prop={'size':10}).draw_frame(False)
 
-        pp = PdfPages('output/result_plot.pdf')
+        outName = 'output/result_plot.pdf'
+        pp = PdfPages(outName)
         pp.savefig(fig)
         pp.close()
+        print "Wrote:", outName
 
 
 if __name__=="__main__":
