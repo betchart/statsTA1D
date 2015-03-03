@@ -362,7 +362,7 @@ class topModel(object):
             leptonstamp = r.TLatex(0.2, 0.84, "%s+jets"%({"el":"e", "mu":"#mu"}[lep]))
             leptonstamp.SetNDC()
             leptonstamp.SetTextFont(42)
-            leptonstamp.SetTextSize(0.04)
+            leptonstamp.SetTextSize(0.05)
 
             cmsstamp = r.TText(0.2, 0.89, "CMS")
             cmsstamp.SetNDC()
@@ -389,12 +389,12 @@ class topModel(object):
                 for name,h in zip(stacknames,stackers)[::-1]:
                     leg.AddEntry(h, replacements[name],'f')
 
-                leg2 = r.TLegend(0.5, 0.3, 0.95, 0.345)
+                leg2 = r.TLegend(0.5, 0.3, 0.95, 0.385)
                 leg2.SetBorderSize(0)
                 leg2.SetFillColor(0)
                 leg2.SetTextFont(42)
 
-                leg3 = r.TLegend(0.5, 0.2, 0.95, 0.4)
+                leg3 = r.TLegend(0.5, 0.18, 0.95, 0.43)
                 leg3.SetBorderSize(0)
                 leg3.SetFillColor(0)
                 leg3.SetTextFont(42)
@@ -422,6 +422,7 @@ class topModel(object):
                     
                     if axis=='Y': continue
                     if twoStage:
+                        r.gPad.RedrawAxis()
                         canvas.Print(printName)
                     else: canvas.cd(i+1+nY)
                     for k,(h,c) in enumerate(zip(comps,colors)[::-1]):
@@ -447,6 +448,7 @@ class topModel(object):
                     cmsstamp.Draw()
                     leptonstamp.Draw()
                     if not twoStage: continue
+                    r.gPad.RedrawAxis()
                     canvas.Print(printName)
                     
                     modelP[i][1].SetLineColor(r.kBlue); modelP[i][1].SetLineStyle(r.kDashed); modelP[i][1].SetLineWidth(2)
@@ -463,12 +465,13 @@ class topModel(object):
                     data[i][1].Draw('same')
                     leg3.AddEntry(data[i][1], "Data", "PE")
                     leg3.AddEntry(model[i][1], "Fit Model", "l")
-                    leg3.AddEntry(modelP[i][1], "Fit Model upper 68% CL", "l")
-                    leg3.AddEntry(modelM[i][1], "Fit Model lower 68% CL", "l")
+                    leg3.AddEntry(modelP[i][1], "Upper 68% CL", "l")
+                    leg3.AddEntry(modelM[i][1], "Lower 68% CL", "l")
                     lumistamp.Draw()
                     cmsstamp.Draw()
                     leptonstamp.Draw()
                     leg3.Draw()
+                    r.gPad.RedrawAxis()
                     canvas.Print(printName)
 
                     bgsubX = bgsub.ProjectionX()
@@ -487,6 +490,7 @@ class topModel(object):
                     print
                     
                 sys.stdout.write(' ')
+                r.gPad.RedrawAxis()
                 canvas.Print(printName)
 
         print
