@@ -86,12 +86,12 @@ class nll_plot(object):
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         ax.axvspan( -100, -99, alpha=0.3, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}$')
         ax.axvspan( (fit-sigma)/tree.scale, (fit+sigma)/tree.scale, alpha=0.2, fc='k', hatch='')
-        ax.axvspan( (fit-sigtot)/tree.scale, (fit+sigtot)/tree.scale, alpha=0.15, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{sys}$')
+        ax.axvspan( (fit-sigtot)/tree.scale, (fit+sigtot)/tree.scale, alpha=0.15, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{syst}$')
 
         PH = (1, 0.0009/tree.scale)
         KR = (0.0102/tree.scale, 0.0005/tree.scale)
         BS = (0.0111/tree.scale, 0.0004/tree.scale)
-        predictions = zip([PH, KR, BS],[(0.2,0.8,0),(0.75,0,0),(0.5,0,0)],['POWHEG','K&R','B&S'])
+        predictions = zip([PH, KR, BS],[(0.2,0.8,0),(0.75,0,0),(0.5,0,0)],['POWHEG',r'$\mathrm{K\"uhn\ &\ Rodrigo}$',r'$\mathrm{Bernreuther\ &\ Si}$'])
         for (f,s),c,L in predictions:
             ax.axvspan( f-s, f+s, alpha=0.6, fc=c, ec=c, label=L)
 
