@@ -111,12 +111,18 @@ class ensemble1D(object):
         order = sorted(int(label) for label in self.sigmbook)
         total = self.sigmbook['-300'].Clone('combined_sigmas')
         total.Reset()
+        total.GetXaxis().SetNdivisions(4,4,0,False)
         for iLab in order:
             lab = "%+d"%iLab
             m = self.sigmbook[lab]
             total.Add(m)
             m.Fit('gaus','QEML')
             c.Print(outName)
+        r.gStyle.SetOptFit(10001)
+        #r.gStyle.SetStatBorderSize(0)
+        r.gStyle.SetStatFont(42)
+        r.gStyle.SetStatX(0.85)
+        r.gStyle.SetStatY(0.9)
         total.Fit('gaus','QEML')
         
         if self.datatrees:
