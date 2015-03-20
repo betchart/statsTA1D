@@ -386,7 +386,8 @@ class topModel(object):
                 leg.SetTextFont(42)
                 
                 leg.AddEntry(data[i][0], 'Data', 'PE')
-                replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"multijet", "st+dy":"t/#bar{t}, Z/#gamma*"}
+                #replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"multijet", "st+dy":"t/#bar{t}, Z/#gamma*"}
+                replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"mj", "st+dy":"ST+DY"}
                 for name,h in zip(stacknames,stackers)[::-1]:
                     leg.AddEntry(h, replacements[name],'f')
 

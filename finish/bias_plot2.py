@@ -21,8 +21,8 @@ class bias_plot(object):
         ylimabs = 0.8
         ax.set_ylim(-ylimabs,ylimabs)
         ax.set_xlim(-2,2)
-        ax.set_ylabel(r'Measurement Bias $(\%)$', fontsize=fs)
-        ax.set_xlabel(r'$A_c^y (\%)$ : Calculated', fontsize=fs)
+        ax.set_ylabel(r'Bias $(\%)$', fontsize=fs)
+        ax.set_xlabel(r'$A_c^y (\%)$', fontsize=fs)
         #ax.set_aspect('equal')
         
         t = np.arange(-2,2,0.01)
@@ -95,16 +95,16 @@ class bias_plot(object):
 
         sys = {'mcstat':0.153, 'modeling': 0.017, 'pdf': 0.018, 'scale': 0.136}
         sys_th = math.sqrt(sum(s*s for s in sys.values()))
-        ax.axhspan( -sys_th, sys_th, alpha=0.15, fc='k', hatch='', label=r'Theory Systematics')
+        ax.axhspan( -sys_th, sys_th, alpha=0.15, fc='k', hatch='', label=r'Theoretical systematic uncertainties')
 
 
         ax.legend(loc='lower left', prop={'size':10}, numpoints=1).draw_frame(False)
 
         labelsfonts = {'fontsize':11}
-        ax.text(-0.4, 0.15, 'madgraph', labelsfonts, ha='right')
+        ax.text(-0.4, 0.15, 'MadGraph', labelsfonts, ha='right')
         ax.text(0.15, 0.4, r"$Z'$", labelsfonts, ha='right')
         #ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.05, 'shrink':0.2, 'headwidth':2}, fontsize=8)
-        ax.text(0.4, -0.19, 'mc@nlo', labelsfonts, ha='right')
+        ax.text(0.4, -0.19, 'MC@NLO', labelsfonts, ha='right')
         #ax.text(0.65, 0.45, 'RIGHT', labelsfonts)
         #ax.text(0.5, 0.7, 'left', labelsfonts, ha='right')
         #ax.text(1.15, 0.9, 'AXIAL', labelsfonts)
