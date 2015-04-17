@@ -21,8 +21,8 @@ class bias_plot(object):
         ylimabs = 0.8
         ax.set_ylim(-ylimabs,ylimabs)
         ax.set_xlim(-2,2)
-        ax.set_ylabel(r'Bias $(\%)$', fontsize=fs)
-        ax.set_xlabel(r'$A_c^y (\%)$', fontsize=fs)
+        ax.set_ylabel(r'Bias (%)', fontsize=fs)
+        ax.set_xlabel(r'$\mathsf{A_c^y}$ (%)', fontsize=fs)
         #ax.set_aspect('equal')
         
         t = np.arange(-2,2,0.01)
@@ -80,10 +80,10 @@ class bias_plot(object):
             else: iOther.append(i)
         canvas.Print(fitfile+']')
 
-        #ax.errorbar(cgen,cfit-np.array(cgen),yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathrm{t\bar{t}}$ models')
+        #ax.errorbar(cgen,cfit-np.array(cgen),yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathsf{t\bar{t}}$ models')
         ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='.', color=(0,0,0.85), mec='k')
-        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'$200\,\mathrm{GeV}$ axigluon models')
-        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'$2\,\mathrm{TeV}$ axigluon models')
+        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'200$\mathsf{\,GeV}$ axigluon models')
+        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'2$\mathsf{\,TeV}$ axigluon models')
 
         for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
             print k, g, f, e

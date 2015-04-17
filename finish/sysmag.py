@@ -83,6 +83,7 @@ class fitresult(object):
         if 'elsymmshape' in self.pvalues: self.pvalues['elsymmshape'] = self.symmshape('el')
         if 'musymmshape' in self.pvalues: self.pvalues['musymmshape'] = self.symmshape('mu')
         self.pvalues['PDF'] = math.sqrt(sum(x**2 for L,x in self.pvalues.items() if 'PD' in L))
+        self.pvalues['mtop'] = 0.00013
         for key in list(self.pvalues):
             if 'PD:' in key: del self.pvalues[key]
         self.porder = sorted(self.pvalues, key = lambda k: self.pvalues[k], reverse=True)

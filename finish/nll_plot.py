@@ -50,13 +50,13 @@ class nll_plot(object):
         ax2 = ax.twiny()
         ax.set_ylim(0,top)
         ax.set_xlim(-3,3)
-        ax.set_ylabel(r'-log$L$', fontsize=fs)
-        ax.set_xlabel(r'$\alpha$', fontsize=fs)
+        ax.set_ylabel(r'$\mathsf{-\log L}$', fontsize=fs)
+        ax.set_xlabel(r'$\mathsf{\alpha}$', fontsize=fs)
         ax.xaxis.set_label_position('top')
         ax.xaxis.tick_top()
         ax2.xaxis.tick_bottom()
         ax2.xaxis.set_label_position('bottom')
-        ax2.set_xlabel(r'$A_c^y (\%)$', fontsize=fs)
+        ax2.set_xlabel(r'$\mathsf{A_c^y}$ (%)', fontsize=fs)
 
         tree = trees[0]
         ax2.set_xlim(-300*tree.scale, 300*tree.scale)
@@ -80,23 +80,23 @@ class nll_plot(object):
             ax.plot(t, y, linewidth=lw, linestyle='--'[:i+1], color='black')
             ax.fill_between(t, y, 0.5, where=y<p5, color=(1,1,1), alpha=0.5, hatch='\/'[i], edgecolor='k', linewidth=0.0, linestyle='--'[:i+1])
 
-        ax.plot([0],[100], 'o', linewidth=lw, linestyle='-', color='k', markersize=6, mfc='k', mec='k', mew=lw, label=r'-log$L$, $e$')
-        ax.plot([0],[100], 'o', linewidth=lw, linestyle='--',color='k', markersize=6, mfc='none', mec='k', mew=lw, label=r'-log$L$, $\mu$')
+        ax.plot([0],[100], 'o', linewidth=lw, linestyle='-', color='k', markersize=6, mfc='k', mec='k', mew=lw, label=r'$\mathsf{-\log L}$, $\mathsf{e}$')
+        ax.plot([0],[100], 'o', linewidth=lw, linestyle='--',color='k', markersize=6, mfc='none', mec='k', mew=lw, label=r'$\mathsf{-\log L}$, $\mathsf{\mu}$')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
-        ax.axvspan( -100, -99, alpha=0.3, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}$')
+        ax.axvspan( -100, -99, alpha=0.3, fc='k', hatch='', label=r'$\mathsf{(e\oplus\mu)\pm\sigma_{stat}}$')
         ax.axvspan( (fit-sigma)/tree.scale, (fit+sigma)/tree.scale, alpha=0.2, fc='k', hatch='')
-        ax.axvspan( (fit-sigtot)/tree.scale, (fit+sigtot)/tree.scale, alpha=0.15, fc='k', hatch='', label=r'$(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{syst}$')
+        ax.axvspan( (fit-sigtot)/tree.scale, (fit+sigtot)/tree.scale, alpha=0.15, fc='k', hatch='', label=r'$\mathsf{(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{syst}}$')
 
         PH = (1, 0.0009/tree.scale)
         KR = (0.0102/tree.scale, 0.0005/tree.scale)
         BS = (0.0111/tree.scale, 0.0004/tree.scale)
-        predictions = zip([PH, KR, BS],[(0.2,0.8,0),(0.75,0,0),(0.5,0,0)],['POWHEG',r'$\mathrm{K\"uhn\ &\ Rodrigo}$',r'$\mathrm{Bernreuther\ &\ Si}$'])
+        predictions = zip([PH, KR, BS],[(0.2,0.8,0),(0.75,0,0),(0.5,0,0)],['POWHEG',r'$\mathsf{K\"uhn}$ & $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ & $\mathsf{Si}$'])
         for (f,s),c,L in predictions:
             ax.axvspan( f-s, f+s, alpha=0.6, fc=c, ec=c, label=L)
 
         ax.text(-2.85, 1.85, "CMS", fontsize=18)
-        ax.text(-2.85, 1.7, "$\mathrm{19.6\ fb}^{-1}\ (\mathrm{8\ TeV})$", fontsize=15)
+        ax.text(-2.85, 1.7, "19.6 $\mathsf{fb}^{-1}$ (8 TeV)", fontsize=15)
 
         ax.legend(loc='lower left').draw_frame(False)
         #plt.show()

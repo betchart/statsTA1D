@@ -18,11 +18,13 @@ class bias_plot(object):
 
         fs = 14
         lw = 1.3
+        cs = 4
+        ct = 0.9*lw
         fig = plt.figure(figsize=(6.5,6.5))
         ax = fig.add_subplot(111)
         ax.set_ylim(-4.5,0.5 +[0,1][unfold])
         ax.set_xlim(-2,2)
-        ax.set_xlabel(r'$A_c^y (\%)$', fontsize=fs)
+        ax.set_xlabel(r'$\mathsf{A_c^y}$ (%)', fontsize=fs)
         #ax.set_xlabel(r'$A_c^y (\%)$ : Calculated', fontsize=fs)
         #ax.set_aspect('equal')
         ax.get_yaxis().set_visible(False)
@@ -37,28 +39,30 @@ class bias_plot(object):
 
         lw = 2
         if unfold:
-            ax.errorbar( 0.5, 0, xerr=math.sqrt(0.7**2+0.6**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, )
+            ax.errorbar( 0.5, 0, xerr=math.sqrt(0.7**2+0.6**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, capsize=cs, capthick=ct )
             ax.text(just, 0, 'CMS 8TeV (unfold)', ha='right')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
         sigmaboth = 0.0042
-        ax.axvspan( -100, -99, alpha=0.2, fc='k', hatch='', label=r'$68\%\ \mathrm{CI}$')
+        ax.axvspan( -100, -99, alpha=0.2, fc='k', hatch='', label=r'$68\%\ \mathsf{CI}$')
         ax.axvspan( 100*(fit-sigmaboth), 100*(fit+sigmaboth), alpha=0.1, fc='k', hatch='')
-        ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%\ \mathrm{CI}$')
-        ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-        ax.text(just, [0,1][unfold], r'$\mathrm{CMS\ 8TeV\ (template)}$', ha='right')
+        ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%\ \mathsf{CI}$')
+        ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw, capsize=cs, capthick=ct)
+        ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigma, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
+        ax.text(just, [0,1][unfold], r'$\mathsf{CMS\ 8TeV\ (template)}$', ha='right')
+        ax.text(just, [0,1][unfold] - 0.2, r'0.33% $\pm$ 0.26% $\pm$ 0.33%', ha='right', fontsize=8)
 
         PHerr = 0.0009*100
         PH = (tree.scale*100, PHerr)
         KR = (0.0102*100, 0.0005*100)
         BS = (0.0111*100, 0.0004*100)
-        predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],[r'$\mathrm{K\"{u}hn\ &\ Rodrigo}$',r'$\mathrm{Bernreuther\ &\ Si}$',r'$\mathrm{POWHEG}$'])
+        predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],[r'$\mathsf{K\"{u}hn}$ & $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ & $\mathsf{Si}$',r'$\mathsf{POWHEG}$'])
         for i,((f,s),c,L) in enumerate(predictions):
-            ax.errorbar( f, -1-i, xerr=s, color='r', linewidth=lw)
+            ax.errorbar( f, -1-i, xerr=s, color='r', linewidth=lw, capsize=cs, capthick=ct)
             ax.text(just, -1-i, L, ha='right')
 
-        names = {'mn':r'$\mathrm{MC@NLO}$'}
+        names = {'mn':r'$\mathsf{MC@NLO}$'}
         order = [0]
         cgen = []
         cfit = []
@@ -71,7 +75,7 @@ class bias_plot(object):
             cerr.append(v.GetMeanError())
             clab.append(k)
         for i,(g,f,e,l) in enumerate(sorted(zip(cgen,cfit,cerr,clab))):
-            ax.errorbar([g], [-4-order[i]], xerr=PHerr, color='r', linewidth=lw )
+            ax.errorbar([g], [-4-order[i]], xerr=PHerr, color='r', linewidth=lw, capsize=cs, capthick=ct )
             #ax.plot([g], [-4-order[i]], 'ob', color=(0,0,0.85), )
             #ax.arrow(f, -4-order[i], g-f, 0, color=(0,0,0.85), head_length=0.1, head_width=0.2)
             ax.text(just, -4-order[i], names[l[-2:]], ha='right')
