@@ -37,10 +37,15 @@ class bias_plot(object):
             bookC.fill( e.gen_Ac*100, 'gen_'+label, 1000, -2, 2)
             bookC.fill( fit*100, "mean_"+label, 100, (e.gen_Ac-e.scale)*100, (e.gen_Ac+e.scale)*100)
 
+
         lw = 2
+
+        ax.text( -1.96, 0.6, "CMS", fontsize=14)
+        ax.text( 0.7, 0.6, "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=14)
+
         if unfold:
             ax.errorbar( 0.5, 0, xerr=math.sqrt(0.7**2+0.6**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, capsize=cs, capthick=ct )
-            ax.text(just, 0, 'CMS 8TeV (unfold)', ha='right')
+            ax.text(just, 0, 'CMS (unfold)', ha='right')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
@@ -50,8 +55,9 @@ class bias_plot(object):
         ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%\ \mathsf{CI}$')
         ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw, capsize=cs, capthick=ct)
         ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigma, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-        ax.text(just, [0,1][unfold], r'$\mathsf{CMS\ 8TeV\ (template)}$', ha='right')
-        ax.text(just, [0,1][unfold] - 0.2, r'0.33% $\pm$ 0.26% $\pm$ 0.33%', ha='right', fontsize=8)
+        ax.text(just, [0,1][unfold], r'$\mathsf{CMS\ (template)}$', ha='right')
+        #ax.text(just, [0,1][unfold] - 0.2, r'0.33% $\pm$ 0.26% $\pm$ 0.33%', ha='right', fontsize=9)
+        ax.text(just, [0,1][unfold] - 0.2, r'$\mathsf{0.33\%\pm 0.26\% \pm 0.33\%}$', ha='right', fontsize=11)
 
         PHerr = 0.0009*100
         PH = (tree.scale*100, PHerr)
