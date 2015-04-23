@@ -56,15 +56,24 @@ colors = [r.kBlack, r.kRed]
 amax = 0.002
 c = r.TCanvas()
 c.Print(fn+'[')
-cmsstamp = r.TText(0.2, 0.87, "CMS Simulation")
-cmsstamp.SetNDC()
-cmsstamp.SetTextSize(0.9 * cmsstamp.GetTextSize())
+
+stamp = r.TText()
+ssize = stamp.GetTextSize()
+def dostamp():
+    stamp.SetTextFont(62)
+    stamp.SetTextSize(ssize)
+    stamp.DrawTextNDC(0.2 ,0.88,"CMS")
+    stamp.SetTextFont(52)
+    stamp.SetTextSize(0.8 * ssize)
+    stamp.DrawTextNDC(0.2, 0.83, "Simulation")
+    stamp.SetTextFont(42)
+    stamp.DrawTextNDC(0.88, 0.96, "(8TeV)")
 
 text = r.TText()
 text.SetTextFont(42)
 text.SetTextSize(0.9 * text.GetTextSize())
 
-for j,sublabel in enumerate(['symmetric','antisymmetric']):
+for j,sublabel in enumerate(['   symmetric','antisymmetric']):
     init = False
     leg = r.TLegend(0.7,0.25,0.9,0.4)
     leg.SetBorderSize(0)
@@ -91,8 +100,8 @@ for j,sublabel in enumerate(['symmetric','antisymmetric']):
         h.Draw('same e1' if init else 'e1')
         init = True
         leg.AddEntry(h, "%s+jets" % ('#mu' if lep=='mu' else 'e'), 'lp')
-        text.DrawTextNDC(0.2,0.82,sublabel)
-        cmsstamp.Draw()
+        text.DrawTextNDC(0.45,0.96,sublabel)
+        dostamp()
     leg.Draw()
     c.Print(fn)
 c.Print(fn+']')
