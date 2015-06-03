@@ -106,12 +106,13 @@ class ensemble1D(object):
         r.TGaxis.SetMaxDigits(3)
         c = r.TCanvas()
         c.SetRightMargin(0.11)
-        c.SetLeftMargin(0.09)
+        c.SetLeftMargin(0.15)
         c.Print(outName+'[')
         order = sorted(int(label) for label in self.sigmbook)
         total = self.sigmbook['-300'].Clone('combined_sigmas')
         total.Reset()
         total.GetXaxis().SetNdivisions(4,4,0,False)
+        total.SetTitle(";%s;pseudo-experiments / bin"%total.GetXaxis().GetTitle())
         for iLab in order:
             lab = "%+d"%iLab
             m = self.sigmbook[lab]
