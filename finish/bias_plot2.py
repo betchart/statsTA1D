@@ -58,6 +58,7 @@ class bias_plot(object):
         iLow = []
         iHi = []
         iOther = []
+        iSM = []
         fitfile = "output/bias_plot2-fits.pdf"
         canvas = r.TCanvas()
         canvas.Print(fitfile+'[')
@@ -77,13 +78,16 @@ class bias_plot(object):
                 iLow.append(i)
             elif '2' in k:
                 iHi.append(i)
+            elif k in ['mean_mg','mean_mn']:
+                iSM.append(i)
             else: iOther.append(i)
         canvas.Print(fitfile+']')
 
         #ax.errorbar(cgen,cfit-np.array(cgen),yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathsf{t\bar{t}}$ models')
-        ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='.', color=(0,0,0.85), mec='k')
+        ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='_', color=(0,0,0.85), mec='k')
         ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'200$\mathsf{\,GeV}$ axigluon models')
         ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'2$\mathsf{\,TeV}$ axigluon models')
+        ax.errorbar(np.array(cgen)[iSM],(cfit-np.array(cgen))[iSM],yerr=np.array(cerr)[iSM],fmt='.', color=(0,0,0.85), mec='k', label=r'Standard model simulations ')
 
         for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
             print k, g, f, e
@@ -95,7 +99,7 @@ class bias_plot(object):
 
         sys = {'mcstat':0.153, 'modeling': 0.017, 'pdf': 0.018, 'scale': 0.136}
         sys_th = math.sqrt(sum(s*s for s in sys.values()))
-        ax.axhspan( -sys_th, sys_th, alpha=0.15, fc='k', hatch='', label=r'Theoretical systematic uncertainties')
+        ax.axhspan( -sys_th, sys_th, alpha=0.4, fc='none', hatch='//', edgecolor='k', label=r'Modeling systematic uncertainties')
 
 
         ax.legend(loc='lower left', prop={'size':10}, numpoints=1).draw_frame(False)
