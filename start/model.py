@@ -308,6 +308,8 @@ class topModel(object):
         r.gROOT.ProcessLine(".L lib/tdrstyle.C")
         r.setTDRStyle()
         r.TGaxis.SetMaxDigits(4)
+        r.gStyle.SetHatchesLineWidth(2)
+        r.gStyle.SetHatchesSpacing(0.7)
         canvas = r.TCanvas()
         nY = 1 if twoStage else self.nBinsY
         if not twoStage: canvas.Divide(nY,2,0,0)
@@ -337,13 +339,16 @@ class topModel(object):
 
             stack = [('tt',),('wj',),('mj',), ('st','dy')][::-1]
             colors = [r.kViolet,r.kGreen+1,r.kRed,r.kGray][::-1]
+            fills = [3354, 3345, 3344, None]
+            lines = [1, 2, 7, 1]
             stackers = []
             stacknames = []
-            for s,c in zip(stack,colors)[-1 if nobg else 0:]:
+            for s,c,f in zip(stack,colors,fills)[-1 if nobg else 0:]:
                 h = hists[s[0]]
                 for n in s[1:]:
                     h.Add(hists[n])
                     bgsub.Add(hists[n], -1)
+                if f: h.SetFillStyle(f)
                 h.SetFillColor(c)
                 h.SetLineColor(c)
                 stackers.append(h)
@@ -352,6 +357,7 @@ class topModel(object):
             def proj(h, axis=None): 
                 if twoStage:
                     oneD = getattr(h,'Projection'+axis)()
+                    oneD.SetFillStyle(h.GetFillStyle())
                     return [lib.symmAnti(oneD)] if axis=='X' else [(oneD,oneD)]
                 else:
                     return [lib.symmAnti(hist) for hist in self.proj(h)]
@@ -385,13 +391,20 @@ class topModel(object):
                 leg.SetNColumns(1+len(stackers))
                 leg.SetTextFont(42)
                 
+                legAlt = r.TLegend(0.75, 0.6, 0.95, 0.9)
+                legAlt.SetBorderSize(0)
+                legAlt.SetFillColor(0)
+                legAlt.SetTextFont(42)
+
                 leg.AddEntry(data[i][0], 'Data', 'PE')
+                legAlt.AddEntry(data[i][0], 'Data', 'PE')
                 #replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"multijet", "st+dy":"t/#bar{t}, Z/#gamma*"}
                 replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"mj", "st+dy":"ST+DY"}
                 for name,h in zip(stacknames,stackers)[::-1]:
                     leg.AddEntry(h, replacements[name],'f')
-
-                leg2 = r.TLegend(0.5, 0.3, 0.95, 0.385)
+                    legAlt.AddEntry(h, replacements[name],'f')
+                
+                leg2 = r.TLegend(0.65, 0.45, 0.95, 0.18)
                 leg2.SetBorderSize(0)
                 leg2.SetFillColor(0)
                 leg2.SetTextFont(42)
@@ -405,6 +418,7 @@ class topModel(object):
                 for i in range(nY):
                     if not twoStage: canvas.cd(i+1)
                     for c in comps: 
+                        c[i][0].SetLineWidth(2)
                         hstack[i].Add(c[i][0])
                     model[i][0].SetMinimum(0)
                     model[i][0].SetLineColor(r.kBlue)
@@ -417,17 +431,19 @@ class topModel(object):
                     model[i][0].Draw('hist same')
                     hstack[i].Draw('hist same')
                     data[i][0].Draw('same')
-                    leg.Draw()
+                    #leg.Draw()
                     lumistamp.Draw()
                     cmsstamp.Draw()
                     leptonstamp.Draw()
                     
-                    if axis=='Y': continue
+                    if axis=='Y':
+                        legAlt.Draw()
+                        continue
                     if twoStage:
                         r.gPad.RedrawAxis()
                         canvas.Print(printName)
                     else: canvas.cd(i+1+nY)
-                    for k,(h,c) in enumerate(zip(comps,colors)[::-1]):
+                    for k,(h,c,ls) in enumerate(zip(comps,colors,lines)[::-1]):
                         if k:
                             h[i][1].ResetAttFill()
                         else:
@@ -436,15 +452,20 @@ class topModel(object):
                             h[i][1].GetXaxis().SetNdivisions(5,False)
                         h[i][1].SetMinimum(-amaximum)
                         h[i][1].SetMaximum(amaximum)
-                        h[i][1].SetLineWidth(2)
+                        h[i][1].SetLineWidth(3)
+                        h[i][1].SetLineStyle(ls)
                         h[i][1].Draw('hist' + ('same' if k else ''))
                     model[i][1].SetLineWidth(4)
                     model[i][1].SetLineColor(r.kBlue)
                     model[i][1].Draw('hist same')
+
                     leg2.AddEntry(model[i][1], "Fit Model", "l")
+                    for name,hist in zip(stacknames,comps)[::-1]:
+                        leg2.AddEntry(hist[0][1], replacements[name],'f' if name=='tt' else 'l')
+
                     data[i][1].SetBinError(3,1)
                     data[i][1].Draw('same')
-                    leg.Draw()
+                    #leg.Draw()
                     leg2.Draw()
                     lumistamp.Draw()
                     cmsstamp.Draw()
@@ -485,11 +506,11 @@ class topModel(object):
                         e.append(bgsubX.GetBinError(iBin+1))
                     s = sum(v)
                     et = math.sqrt(sum([ee*ee for ee in e]))
-                    print v
-                    print v[:2], v[3:]
+                    #print v
+                    #print v[:2], v[3:]
                     d =  sum(v[3:]) - sum(v[:2]) 
-                    print 100 * d/s, '+/-', 100 * et/s
-                    print
+                    #print 100 * d/s, '+/-', 100 * et/s
+                    #print
                     
                 sys.stdout.write(' ')
                 r.gPad.RedrawAxis()
