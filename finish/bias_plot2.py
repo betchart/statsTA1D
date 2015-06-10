@@ -99,7 +99,7 @@ class bias_plot(object):
 
         sys = {'mcstat':0.153, 'modeling': 0.017, 'pdf': 0.018, 'scale': 0.136}
         sys_th = math.sqrt(sum(s*s for s in sys.values()))
-        ax.axhspan( -sys_th, sys_th, alpha=0.4, fc='none', hatch='//', edgecolor='k', label=r'Modeling systematic uncertainties')
+        ax.axhspan( -sys_th, sys_th, alpha=0.4, fc='white', hatch='//', edgecolor='k', label=r'Modeling systematic uncertainties')
 
 
         ax.legend(loc='lower left', prop={'size':10}, numpoints=1).draw_frame(False)
