@@ -32,7 +32,7 @@ class symmanti(object):
             h = tFile.Get(dName + '/' + key)
             h.UseCurrentStyle()
             h.Rebin(2)
-            h.SetTitle(';%s;(1/#sigma)(#partial#sigma/#partial %s)'%(Xl,Xl))
+            h.SetTitle(';%s;(1/#sigma)(#partial#sigma/#partial%s)'%(Xl,Xl))
             h.Scale(1./h.Integral(),'width')
             col,width,style = props[key]
             h.SetLineColor(col)
