@@ -91,9 +91,10 @@ class nll_plot(object):
         PH = (1, 0.0009/tree.scale)
         KR = (0.0102/tree.scale, 0.0005/tree.scale)
         BS = (0.0111/tree.scale, 0.0004/tree.scale)
-        predictions = zip([PH, KR, BS],[(0.2,0.8,0),(0.75,0,0),(0.5,0,0)],['POWHEG',r'$\mathsf{K\"uhn}$ & $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ & $\mathsf{Si}$'])
-        for (f,s),c,L in predictions:
-            ax.axvspan( f-s, f+s, alpha=0.6, fc=c, ec=c, label=L)
+        bogus = (100, 0.1)
+        predictions = zip([PH, bogus, KR, BS],['\\//','\\//','',''],['k','k',(0.75,0,0),(0.5,0,0)],['','POWHEG',r'$\mathsf{K\"uhn}$ & $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ & $\mathsf{Si}$'])
+        for (f,s),h,c,L in predictions:
+            ax.axvspan( f-s, f+s, alpha=(1 if h else 0.6), hatch=h, fc=('w' if f==100 else "none" if h else c), ec=c, label=L)
 
         ax.text(-2.85, 1.85, "CMS", fontsize=18)
         ax.text(-2.85, 1.7, "19.6 $\mathsf{fb}^{-1}$ (8 TeV)", fontsize=15)
