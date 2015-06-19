@@ -114,6 +114,9 @@ class bias_plot(object):
         #ax.text(1.15, 0.9, 'AXIAL', labelsfonts)
         #ax.text(1.65, 1.3, 'axial', labelsfonts)
 
+        ax.text( -1.85, 0.7, "CMS", fontsize=16)
+        ax.text( 0.5, 0.7, "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=16)
+
         output = 'output/bias_plot2.pdf'
         pp = PdfPages(output)
         print 'Wrote:', output
