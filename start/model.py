@@ -399,7 +399,7 @@ class topModel(object):
                 leg.AddEntry(data[i][0], 'Data', 'PE')
                 legAlt.AddEntry(data[i][0], 'Data', 'PE')
                 #replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"multijet", "st+dy":"t/#bar{t}, Z/#gamma*"}
-                replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"mj", "st+dy":"ST+DY"}
+                replacements = {"tt":"t#bar{t}", "wj":"Wj", "mj":"Mj", "st+dy":"St+DY"}
                 for name,h in zip(stacknames,stackers)[::-1]:
                     leg.AddEntry(h, replacements[name],'f')
                     legAlt.AddEntry(h, replacements[name],'f')
@@ -459,7 +459,7 @@ class topModel(object):
                     model[i][1].SetLineColor(r.kBlue)
                     model[i][1].Draw('hist same')
 
-                    leg2.AddEntry(model[i][1], "Fit Model", "l")
+                    leg2.AddEntry(model[i][1], "Fit model", "l")
                     for name,hist in zip(stacknames,comps)[::-1]:
                         leg2.AddEntry(hist[0][1], replacements[name],'f' if name=='tt' else 'l')
 
@@ -487,7 +487,7 @@ class topModel(object):
                     modelM[i][1].Draw('hist same')
                     data[i][1].Draw('same')
                     leg3.AddEntry(data[i][1], "Data", "PE")
-                    leg3.AddEntry(model[i][1], "Fit Model", "l")
+                    leg3.AddEntry(model[i][1], "Fit model", "l")
                     leg3.AddEntry(modelP[i][1], "Upper 68% CL", "l")
                     leg3.AddEntry(modelM[i][1], "Lower 68% CL", "l")
                     lumistamp.Draw()
