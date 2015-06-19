@@ -25,7 +25,7 @@ ssize = stamp.GetTextSize()
 def dostamp():
     stamp.SetTextFont(62)
     stamp.SetTextSize(ssize)
-    stamp.DrawTextNDC(0.2 ,0.89,"POWHEG CT10")
+    stamp.DrawTextNDC(0.2 ,0.88,"POWHEG CT10")
     stamp.SetTextSize(0.8 * ssize)
     stamp.SetTextFont(42)
     stamp.DrawTextNDC(0.82, 0.96, "(8TeV pp)")
@@ -61,7 +61,7 @@ class symmanti(object):
         c = r.TCanvas("canvas","", 800,800)
         c.Print(outName + '[')
         for i,(n,(h,_)) in enumerate(hists.items()):
-            h.SetMaximum(1.1*smax)
+            h.SetMaximum(1.15*smax)
             h.SetMinimum(0)
             h.Draw('hist' + ('' if not i else 'same'))
             leg.Draw()
