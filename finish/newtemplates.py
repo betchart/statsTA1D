@@ -67,13 +67,13 @@ def dostamp():
     stamp.SetTextSize(0.8 * ssize)
     stamp.DrawTextNDC(0.2, 0.83, "Simulation")
     stamp.SetTextFont(42)
-    stamp.DrawTextNDC(0.88, 0.96, "(8TeV)")
+    stamp.DrawTextNDC(0.86, 0.96, "(8 TeV)")
 
 text = r.TText()
 text.SetTextFont(42)
 text.SetTextSize(0.9 * text.GetTextSize())
 
-for j,sublabel in enumerate(['   symmetric','antisymmetric']):
+for j,sublabel in enumerate(['   Symmetric','Antisymmetric']):
     init = False
     leg = r.TLegend(0.7,0.25,0.9,0.4)
     leg.SetBorderSize(0)
@@ -95,7 +95,7 @@ for j,sublabel in enumerate(['   symmetric','antisymmetric']):
         h.SetMarkerSize(1.5)
         if lep=='mu': h.SetMarkerStyle(4)
         h.SetLineWidth(4 if lep=='el' else 2)
-        h.GetYaxis().SetTitle('probability / bin')
+        h.GetYaxis().SetTitle('Probability / bin')
         h.GetXaxis().SetTitle(xlabel)
         h.Draw('same e1' if init else 'e1')
         init = True
