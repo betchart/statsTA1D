@@ -112,7 +112,15 @@ class ensemble1D(object):
         total = self.sigmbook['-300'].Clone('combined_sigmas')
         total.Reset()
         total.GetXaxis().SetNdivisions(4,4,0,False)
-        total.SetTitle(";%s;pseudo-experiments / bin"%total.GetXaxis().GetTitle())
+        total.SetTitle(";%s;Pseudo-experiments / bin"%total.GetXaxis().GetTitle())
+
+        lumistamp = r.TLatex(0.57, 0.96, "19.6 fb^{-1} (8 TeV)")
+        lumistamp.SetTextFont(42)
+        lumistamp.SetNDC()
+
+        cmsstamp = r.TText(0.2, 0.89, "CMS")
+        cmsstamp.SetNDC()
+
         for iLab in order:
             lab = "%+d"%iLab
             m = self.sigmbook[lab]
@@ -134,6 +142,9 @@ class ensemble1D(object):
             a.DrawArrow(x,3,x,0.4*total.GetMaximum(),0.05,"<")
         c.Update()
 
+        lumistamp.Draw()
+        cmsstamp.Draw()
+        
         c.Print(outName)
         c.Print(outName+']')
 
