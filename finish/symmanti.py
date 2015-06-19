@@ -8,13 +8,27 @@ r.gROOT.ProcessLine(".L lib/tdrstyle.C")
 r.setTDRStyle()
 r.tdrStyle.SetErrorX(0.5);
 
-Xl = "#varUpsilon_{t#bar{t}}"
+Xl = "#varUpsilon_{#kern[-0.1]{#lower[-0.3]{t#bar{t}}}}"
 labels = {'tt':"pp #rightarrow t#bar{t}",
           "ttqq":"q#bar{q} #rightarrow t#bar{t}",
           "ttgg":"gg #rightarrow t#bar{t}",
           "ttqg":"qg #rightarrow t#bar{t}",
           "ttag":"#bar{q}g #rightarrow t#bar{t}"
       }
+
+text = r.TText()
+text.SetTextFont(42)
+text.SetTextSize(0.9 * text.GetTextSize())
+
+stamp = r.TText()
+ssize = stamp.GetTextSize()
+def dostamp():
+    stamp.SetTextFont(62)
+    stamp.SetTextSize(ssize)
+    stamp.DrawTextNDC(0.2 ,0.89,"POWHEG CT10")
+    stamp.SetTextSize(0.8 * ssize)
+    stamp.SetTextFont(42)
+    stamp.DrawTextNDC(0.82, 0.96, "(8TeV pp)")
 
 
 class symmanti(object):
@@ -51,12 +65,16 @@ class symmanti(object):
             h.SetMinimum(0)
             h.Draw('hist' + ('' if not i else 'same'))
             leg.Draw()
+        text.DrawTextNDC(0.45,0.96,"Symmetric")
+        dostamp()
         c.Print(outName)
         for i,(n,(_,h)) in enumerate(hists.items()):
             h.SetMaximum(1.1*amax)
             h.SetMinimum(-1.1*amax)
             h.Draw('hist' + ('' if not i else 'same'))
             leg.Draw()
+        text.DrawTextNDC(0.45,0.96,"Antisymmetric")
+        dostamp()
         c.Print(outName)
         c.Print(outName + ']')
         tFile.Close()
