@@ -14,7 +14,7 @@ class bias_plot(object):
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_pdf import PdfPages
 
-        just = -0.75
+        just = -0.8
 
         fs = 14
         lw = 1.3
@@ -49,8 +49,8 @@ class bias_plot(object):
             unfold_syst = 0.37
             ax.errorbar( unfold_mean, 0, xerr=math.sqrt(unfold_stat**2+unfold_syst**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, capsize=cs, capthick=ct )
             ax.errorbar( unfold_mean, 0, xerr=unfold_stat, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-            ax.text(just, 0, r'$\mathsf{CMS\ (unfold)}$', ha='right')
-            ax.text(just, 0 - 0.2, ('$\mathsf{%.2fpercent\pm %.2fpercent \pm %.2fpercent}$'%(unfold_mean,unfold_stat,unfold_syst)).replace('percent',r'\%'), ha='right', fontsize=11)
+            ax.text(just, 0, r'$\mathsf{CMS,\ unfold}$', ha='right')
+            ax.text(just, 0 - 0.2, ('($\mathsf{%.2fpercent\pm %.2fpercent \pm %.2fpercent})ppp$'%(unfold_mean,unfold_stat,unfold_syst)).replace('percent','').replace('ppp', r'\%'), ha='right', fontsize=11)
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
@@ -60,9 +60,8 @@ class bias_plot(object):
         ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%\ \mathsf{CI}$')
         ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw, capsize=cs, capthick=ct)
         ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigma, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-        ax.text(just, [0,1][unfold], r'$\mathsf{CMS\ (template)}$', ha='right')
-        #ax.text(just, [0,1][unfold] - 0.2, r'0.33% $\pm$ 0.26% $\pm$ 0.33%', ha='right', fontsize=9)
-        ax.text(just, [0,1][unfold] - 0.2, r'$\mathsf{0.33\%\pm 0.26\% \pm 0.33\%}$', ha='right', fontsize=11)
+        ax.text(just, [0,1][unfold], r'$\mathsf{CMS,\ template}$', ha='right')
+        ax.text(just, [0,1][unfold] - 0.2, r'$(\mathsf{0.33percent\pm 0.26percent \pm 0.33percent})ppp$'.replace('percent','').replace('ppp',r'\%'), ha='right', fontsize=11)
 
         PHerr = 0.0009*100
         PH = (tree.scale*100, PHerr)
