@@ -6,7 +6,7 @@ from itertools import izip
 import ROOT as r
 import math
 
-unfold = False
+unfold = True
 
 import matplotlib
 class bias_plot(object):
@@ -14,7 +14,7 @@ class bias_plot(object):
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_pdf import PdfPages
 
-        just = -0.6
+        just = -0.75
 
         fs = 14
         lw = 1.3
@@ -40,12 +40,16 @@ class bias_plot(object):
 
         lw = 2
 
-        ax.text( -1.96, 0.6, "CMS", fontsize=14)
-        ax.text( 0.7, 0.6, "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=14)
+        ax.text( -1.96, 0.6 + [0,1][unfold], "CMS", fontsize=14)
+        ax.text( 0.7, 0.6 + [0,1][unfold], "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=14)
 
         if unfold:
-            ax.errorbar( 0.5, 0, xerr=math.sqrt(0.7**2+0.6**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, capsize=cs, capthick=ct )
-            ax.text(just, 0, 'CMS (unfold)', ha='right')
+            unfold_mean = 0.10
+            unfold_stat = 0.68
+            unfold_syst = 0.37
+            ax.errorbar( unfold_mean, 0, xerr=math.sqrt(unfold_stat**2+unfold_syst**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, capsize=cs, capthick=ct )
+            ax.errorbar( unfold_mean, 0, xerr=unfold_stat, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
+            ax.text(just, 0, r'$\mathsf{CMS\ (unfold)}$', ha='right')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
