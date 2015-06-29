@@ -50,6 +50,7 @@ class bias_plot(object):
             ax.errorbar( unfold_mean, 0, xerr=math.sqrt(unfold_stat**2+unfold_syst**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, capsize=cs, capthick=ct )
             ax.errorbar( unfold_mean, 0, xerr=unfold_stat, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
             ax.text(just, 0, r'$\mathsf{CMS\ (unfold)}$', ha='right')
+            ax.text(just, 0 - 0.2, ('$\mathsf{%.2fpercent\pm %.2fpercent \pm %.2fpercent}$'%(unfold_mean,unfold_stat,unfold_syst)).replace('percent',r'\%'), ha='right', fontsize=11)
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
