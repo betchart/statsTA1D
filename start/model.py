@@ -311,6 +311,7 @@ class topModel(object):
         r.gStyle.SetHatchesLineWidth(2)
         r.gStyle.SetHatchesSpacing(0.7)
         canvas = r.TCanvas()
+        canvas.SetTopMargin(0.06)
         nY = 1 if twoStage else self.nBinsY
         if not twoStage: canvas.Divide(nY,2,0,0)
         canvas.Print(printName+'[')
@@ -362,17 +363,18 @@ class topModel(object):
                 else:
                     return [lib.symmAnti(hist) for hist in self.proj(h)]
 
-            lumistamp = r.TLatex(0.65, 0.96, "19.6 fb^{-1} (8 TeV)")
+            lumistamp = r.TLatex(0.65, 0.95, "19.6 fb^{-1} (8 TeV)")
             lumistamp.SetTextFont(42)
             lumistamp.SetNDC()
 
-            leptonstamp = r.TLatex(0.2, 0.84, "%s+jets"%({"el":"e", "mu":"#mu"}[lep]))
+            leptonstamp = r.TLatex(0.19, 0.82, "%s+jets"%({"el":"e", "mu":"#mu"}[lep]))
             leptonstamp.SetNDC()
-            leptonstamp.SetTextFont(42)
-            leptonstamp.SetTextSize(0.05)
+            leptonstamp.SetTextFont(52)
+            leptonstamp.SetTextSize(0.055)
 
-            cmsstamp = r.TText(0.2, 0.89, "CMS")
+            cmsstamp = r.TText(0.19, 0.87, "CMS")
             cmsstamp.SetNDC()
+            cmsstamp.SetTextSize(1.15*cmsstamp.GetTextSize())
 
             
             for axis in (['Y','X'] if twoStage else [None]):
@@ -404,7 +406,7 @@ class topModel(object):
                     leg.AddEntry(h, replacements[name],'f')
                     legAlt.AddEntry(h, replacements[name],'f')
                 
-                leg2 = r.TLegend(0.65, 0.45, 0.95, 0.18)
+                leg2 = r.TLegend(0.63, 0.47, 0.98, 0.16)
                 leg2.SetBorderSize(0)
                 leg2.SetFillColor(0)
                 leg2.SetTextFont(42)
