@@ -3,60 +3,74 @@ import ROOT as r
 import numpy as np
 import lib
 
-class nll_plot_root(object):
-    
-    def __init__(self,trees):
-        canvas = r.TCanvas()
-        graphs = []
-        parbs = []
-        boxes = []
-        markers = [34,28]
-        lines = [r.kSolid, r.kDashed]
-        top = 2.01
-        for i,tree in enumerate(trees):
-            graphs.append( r.TGraphErrors(tree.points.size(), np.array('d',tree.points), np.array('d',tree.pllPoints)) )
-            graphs[i].SetMarkerStyle(markers[i])
-            graphs[i].SetMarkerSize(1.5)
-            graphs[i].GetXaxis().SetLimits(-3,3)
-            graphs[i].SetMaximum(top)
-            graphs[i].SetTitle(';#alpha;-log L')
-            if not i: graphs[i].Draw('pAX+')
-            boxes.append(r.TBox((tree.fit-tree.sigma)/tree.scale,0,(tree.fit+tree.sigma)/tree.scale,top))
-            boxes[i].Draw()
-            graphs[i].Draw('pX+')
-            parbs.append( r.TF1("parb","%f * x**2 + 2 * %f * x + %f"%tuple(tree.parbABC), tree.points[0], tree.points[-1]))
-            parbs[i].SetLineColor(r.kBlue)
-            parbs[i].SetLineStyle(lines[i])
-            parbs[i].Draw("same")
-        gaxis = r.TGaxis(graphs[0].GetXaxis().GetXmin(), 0, graphs[0].GetXaxis().GetXmax(), 0, 100*trees[0].scale*graphs[0].GetXaxis().GetXmin(), 100*trees[0].scale*graphs[0].GetXaxis().GetXmax())
-        gaxis.SetTitle("A_{c}^{y} (%)")
-        gaxis.Draw()
-        canvas.Update()
-        raw_input()
-
+#class nll_plot_root(object):
+#    
+#    def __init__(self,trees):
+#        canvas = r.TCanvas()
+#        graphs = []
+#        parbs = []
+#        boxes = []
+#        markers = [34,28]
+#        lines = [r.kSolid, r.kDashed]
+#        top = 2.01
+#        for i,tree in enumerate(trees):
+#            graphs.append( r.TGraphErrors(tree.points.size(), np.array('d',tree.points), np.array('d',tree.pllPoints)) )
+#            graphs[i].SetMarkerStyle(markers[i])
+#            graphs[i].SetMarkerSize(1.5)
+#            graphs[i].GetXaxis().SetLimits(-3,3)
+#            graphs[i].SetMaximum(top)
+#            graphs[i].SetTitle(';#alpha;-log L')
+#            if not i: graphs[i].Draw('pAX+')
+#            boxes.append(r.TBox((tree.fit-tree.sigma)/tree.scale,0,(tree.fit+tree.sigma)/tree.scale,top))
+#            boxes[i].Draw()
+#            graphs[i].Draw('pX+')
+#            parbs.append( r.TF1("parb","%f * x**2 + 2 * %f * x + %f"%tuple(tree.parbABC), tree.points[0], tree.points[-1]))
+#            parbs[i].SetLineColor(r.kBlue)
+#            parbs[i].SetLineStyle(lines[i])
+#            parbs[i].Draw("same")
+#        gaxis = r.TGaxis(graphs[0].GetXaxis().GetXmin(), 0, graphs[0].GetXaxis().GetXmax(), 0, 100*trees[0].scale*graphs[0].GetXaxis().GetXmin(), 100*trees[0].scale*graphs[0].GetXaxis().GetXmax())
+#        gaxis.SetTitle("A_{c}^{y} (%)")
+#        gaxis.Draw()
+#        canvas.Update()
+#        raw_input()
+#
 
 import matplotlib
 class nll_plot(object):
     def __init__(self,trees):
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_pdf import PdfPages
+        from matplotlib.ticker import MultipleLocator
 
         sigtot = 0.0042
         top = 2.01
-        fs = 20
+        fs = 16
         lw = 1.3
-        fig = plt.figure()
+        fig = plt.figure(figsize=(6.5,6.5))
         ax = fig.add_subplot(111)
         ax2 = ax.twiny()
         ax.set_ylim(0,top)
         ax.set_xlim(-3,3)
-        ax.set_ylabel(r'$\mathsf{-\log L}$', fontsize=fs)
-        ax.set_xlabel(r'$\mathsf{\alpha}$', fontsize=fs)
         ax.xaxis.set_label_position('top')
         ax.xaxis.tick_top()
         ax2.xaxis.tick_bottom()
         ax2.xaxis.set_label_position('bottom')
-        ax2.set_xlabel(r'$\mathsf{A_c^y}$ (%)', fontsize=fs)
+        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label, ax2.title, ax2.xaxis.label, ax2.yaxis.label] +
+                     ax.get_xticklabels() + ax.get_yticklabels() + ax2.get_xticklabels() + ax2.get_yticklabels()):
+            item.set_fontsize(fs)
+        ax2.set_xlabel(r'$A_c^y$ $(\%)$', fontsize=fs+4)
+        ax.set_ylabel(r'$\mathsf{-\log L}$', fontsize=fs+4)
+        ax.set_xlabel(r'$\mathsf{\alpha}$', fontsize=fs+4)
+        ax.tick_params('both', length=10, width=1, which='major')
+        ax.tick_params('both', length=5, width=1, which='minor')
+        ax2.tick_params('both', length=10, width=1, which='major')
+        ax2.tick_params('both', length=5, width=1, which='minor')
+        ax.xaxis.set_minor_locator(MultipleLocator(0.2))
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        ax.yaxis.set_minor_locator(MultipleLocator(0.1))
+        ax.yaxis.set_major_locator(MultipleLocator(0.5))
+        ax2.xaxis.set_minor_locator(MultipleLocator(0.2))
+        ax2.xaxis.set_major_locator(MultipleLocator(1.0))
 
         tree = trees[0]
         ax2.set_xlim(-300*tree.scale, 300*tree.scale)
@@ -96,11 +110,13 @@ class nll_plot(object):
         for (f,s),h,c,L in predictions:
             ax.axvspan( f-s, f+s, alpha=(1 if h else 0.6), hatch=h, fc=('w' if f==100 else "none" if h else c), ec=c, label=L)
 
-        ax.text(-2.85, 1.85, "CMS", fontsize=18)
-        ax.text(-2.85, 1.7, "19.6 $\mathsf{fb}^{-1}$ (8 TeV)", fontsize=15)
+        ax.text(-2.9, 1.85, "CMS", fontsize=20, weight='heavy')
+        ax.text(-2.9, 1.75, "19.6 $\mathsf{fb}^{-1}$ (8 TeV)", fontsize=15)
 
-        ax.legend(loc='lower left').draw_frame(False)
+        ax.legend(loc='lower left', prop={'size':fs-2}).draw_frame(False)
         #plt.show()
+
+        plt.subplots_adjust(top=0.9,right=0.97,left=0.12,bottom=0.12)
 
         output = 'output/nll_plot.pdf'
         pp = PdfPages(output)

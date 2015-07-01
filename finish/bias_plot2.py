@@ -13,17 +13,28 @@ class bias_plot(object):
     def __init__(self, trees, treesA, treesC):
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_pdf import PdfPages
+        from matplotlib.ticker import MultipleLocator
 
-        fs = 14
+        fs = 16
         lw = 1.3
         fig = plt.figure(figsize=(6.5,6.5))
         ax = fig.add_subplot(111)
+        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                     ax.get_xticklabels() + ax.get_yticklabels()):
+            item.set_fontsize(fs)
+
         ylimabs = 0.8
         ax.set_ylim(-ylimabs,ylimabs)
         ax.set_xlim(-2,2)
-        ax.set_ylabel(r'Bias (%)', fontsize=fs)
-        ax.set_xlabel(r'$\mathsf{A_c^y}$ (%)', fontsize=fs)
+        ax.set_ylabel(r'Bias $(\%)$', fontsize=fs+2)
+        ax.set_xlabel(r'$A_c^y$ $(\%)$', fontsize=fs+2)
         #ax.set_aspect('equal')
+        ax.xaxis.set_minor_locator(MultipleLocator(0.2))
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        ax.yaxis.set_minor_locator(MultipleLocator(0.1))
+        ax.yaxis.set_major_locator(MultipleLocator(0.2))
+        ax.tick_params('both', length=10, width=1, which='major')
+        ax.tick_params('both', length=5, width=1, which='minor')
         
         t = np.arange(-2,2,0.01)
         ax.plot(t,np.zeros(len(t)), lw=0.5, color='k')[0].set_dashes([1,1])
@@ -99,12 +110,12 @@ class bias_plot(object):
 
         sys = {'mcstat':0.153, 'modeling': 0.017, 'pdf': 0.018, 'scale': 0.136}
         sys_th = math.sqrt(sum(s*s for s in sys.values()))
-        ax.axhspan( -sys_th, sys_th, alpha=0.4, fc='white', hatch='//', edgecolor='k', label=r'Modeling systematic uncertainties')
+        ax.axhspan( -sys_th, sys_th, alpha=0.4, fc='white', hatch='//', edgecolor='k', label=r'Modeling syst. uncertainties')
 
 
-        ax.legend(loc='lower left', prop={'size':10}, numpoints=1).draw_frame(False)
+        ax.legend(loc='lower left', prop={'size':13}, numpoints=1).draw_frame(False)
 
-        labelsfonts = {'fontsize':11}
+        labelsfonts = {'fontsize':13}
         ax.text(-0.4, 0.15, 'MadGraph', labelsfonts, ha='right')
         ax.text(0.15, 0.4, r"$Z'$", labelsfonts, ha='right')
         #ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.05, 'shrink':0.2, 'headwidth':2}, fontsize=8)
@@ -114,9 +125,11 @@ class bias_plot(object):
         #ax.text(1.15, 0.9, 'AXIAL', labelsfonts)
         #ax.text(1.65, 1.3, 'axial', labelsfonts)
 
-        ax.text( -1.85, 0.7, "CMS", fontsize=16)
-        ax.text( 0.5, 0.7, "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=16)
+        ax.text( -1.85, 0.7, "CMS", fontsize=20, weight='heavy')
+        ax.text( 0.6, 0.82, "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=16)
 
+        plt.subplots_adjust(top=0.95,right=0.95,left=0.15)
+        
         output = 'output/bias_plot2.pdf'
         pp = PdfPages(output)
         print 'Wrote:', output

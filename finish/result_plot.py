@@ -13,6 +13,7 @@ class bias_plot(object):
     def __init__(self, trees, treesA, treesC):
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_pdf import PdfPages
+        from matplotlib.ticker import MultipleLocator
 
         just = -0.8
 
@@ -24,10 +25,17 @@ class bias_plot(object):
         ax = fig.add_subplot(111)
         ax.set_ylim(-4.5,0.5 +[0,1][unfold])
         ax.set_xlim(-2,2)
-        ax.set_xlabel(r'$\mathsf{A_c^y}$ (%)', fontsize=fs)
+        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                     ax.get_xticklabels() + ax.get_yticklabels()):
+            item.set_fontsize(fs)
+        ax.set_xlabel(r'$A_c^y$ $(\%)$', fontsize=fs+4)
         #ax.set_xlabel(r'$A_c^y (\%)$ : Calculated', fontsize=fs)
         #ax.set_aspect('equal')
         ax.get_yaxis().set_visible(False)
+        ax.xaxis.set_minor_locator(MultipleLocator(0.2))
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        ax.tick_params('both', length=10, width=1, which='major')
+        ax.tick_params('both', length=5, width=1, which='minor')
         
         bookC = autoBook('C')
         for e,m in izip(*treesC):
@@ -40,8 +48,8 @@ class bias_plot(object):
 
         lw = 2
 
-        ax.text( -1.96, 0.6 + [0,1][unfold], "CMS", fontsize=14)
-        ax.text( 0.7, 0.6 + [0,1][unfold], "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=14)
+        ax.text( -1.96, 0.55 + [0,1][unfold], "CMS", fontsize=19, weight='heavy')
+        ax.text( 0.75, 0.55 + [0,1][unfold], "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=16)
 
         if unfold:
             unfold_mean = 0.10
@@ -49,18 +57,18 @@ class bias_plot(object):
             unfold_syst = 0.37
             ax.errorbar( unfold_mean, 0, xerr=math.sqrt(unfold_stat**2+unfold_syst**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, capsize=cs, capthick=ct )
             ax.errorbar( unfold_mean, 0, xerr=unfold_stat, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-            ax.text(just, 0, r'$\mathsf{CMS,\ unfold}$', ha='right')
+            ax.text(just, 0, r'$\mathsf{CMS,\ unfold}$', ha='right', fontsize=fs)
             ax.text(just, 0 - 0.2, ('($\mathsf{%.2fpercent\pm %.2fpercent \pm %.2fpercent})ppp$'%(unfold_mean,unfold_stat,unfold_syst)).replace('percent','').replace('ppp', r'\%'), ha='right', fontsize=11)
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
         sigmaboth = 0.0042
-        ax.axvspan( -100, -99, alpha=0.2, fc='k', hatch='', label=r'$68\%\ \mathsf{CI}$')
+        ax.axvspan( -100, -99, alpha=0.2, fc='k', hatch='', label=r'$68\%$')
         ax.axvspan( 100*(fit-sigmaboth), 100*(fit+sigmaboth), alpha=0.1, fc='k', hatch='')
-        ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%\ \mathsf{CI}$')
+        ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%$')
         ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw, capsize=cs, capthick=ct)
         ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigma, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-        ax.text(just, [0,1][unfold], r'$\mathsf{CMS,\ template}$', ha='right')
+        ax.text(just, [0,1][unfold], r'$\mathsf{CMS,\ template}$', ha='right',fontsize=fs)
         ax.text(just, [0,1][unfold] - 0.2, r'$(\mathsf{0.33percent\pm 0.26percent \pm 0.33percent})ppp$'.replace('percent','').replace('ppp',r'\%'), ha='right', fontsize=11)
 
         PHerr = 0.0009*100
@@ -70,7 +78,7 @@ class bias_plot(object):
         predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],[r'$\mathsf{K\"{u}hn}$ & $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ & $\mathsf{Si}$',r'$\mathsf{POWHEG}$'])
         for i,((f,s),c,L) in enumerate(predictions):
             ax.errorbar( f, -1-i, xerr=s, color='r', linewidth=lw, capsize=cs, capthick=ct)
-            ax.text(just, -1-i, L, ha='right')
+            ax.text(just, -1-i, L, ha='right',fontsize=fs)
 
         names = {'mn':r'$\mathsf{MC@NLO}$'}
         order = [0]
@@ -93,7 +101,9 @@ class bias_plot(object):
             print k, g, f, e
 
 
-        ax.legend(loc='upper right', prop={'size':10}).draw_frame(False)
+        ax.legend(loc='upper right', prop={'size':fs}, title='Confidence').draw_frame(False)
+
+        plt.subplots_adjust(top=0.95,right=0.95,left=0.05)
 
         outName = 'output/result_plot.pdf'
         pp = PdfPages(outName)
