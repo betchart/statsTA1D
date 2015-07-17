@@ -301,7 +301,7 @@ class topModel(object):
     def visualize(self, printName='', nobg="", twoStage=False):
         w = self.w
         #titles = ['X_{%s}'%self.observables[0][1],'#Delta']
-        titles = ['#varUpsilon_{t#bar{t}}','#Delta']
+        titles = ['#varUpsilon_{t#bar{t}}^{rec}','#Delta']
         for v,t in zip(self.observables,titles) :
             w.arg(v).SetTitle(t)
 
