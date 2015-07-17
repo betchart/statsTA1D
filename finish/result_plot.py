@@ -47,6 +47,7 @@ class bias_plot(object):
 
 
         lw = 2
+        lc = (0.9,0.1,0.1)
 
         ax.text( -1.96, 0.55 + [0,1][unfold], "CMS", fontsize=19, weight='heavy')
         ax.text( 0.75, 0.55 + [0,1][unfold], "19.6$\,\mathsf{fb^{-1}}$ (8 TeV)", fontsize=16)
@@ -55,19 +56,19 @@ class bias_plot(object):
             unfold_mean = 0.10
             unfold_stat = 0.68
             unfold_syst = 0.37
-            ax.errorbar( unfold_mean, 0, xerr=math.sqrt(unfold_stat**2+unfold_syst**2), marker='.', markersize=15, mfc='k', mec='k', color='r', linewidth=lw, capsize=cs, capthick=ct )
-            ax.errorbar( unfold_mean, 0, xerr=unfold_stat, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
+            ax.errorbar( unfold_mean, 0, xerr=math.sqrt(unfold_stat**2+unfold_syst**2), marker='.', markersize=15, mfc='k', mec='k', color=lc, linewidth=lw, capsize=cs, capthick=ct )
+            ax.errorbar( unfold_mean, 0, xerr=unfold_stat, color=lc, marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
             ax.text(just, 0, r'$\mathsf{CMS,\ unfold}$', ha='right', fontsize=fs)
             ax.text(just, 0 - 0.2, ('($\mathsf{%.2fpercent\pm %.2fpercent \pm %.2fpercent})ppp$'%(unfold_mean,unfold_stat,unfold_syst)).replace('percent','').replace('ppp', r'\%'), ha='right', fontsize=11)
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
         sigmaboth = 0.0042
-        ax.axvspan( -100, -99, alpha=0.2, fc='k', hatch='', label=r'$68\%$')
-        ax.axvspan( 100*(fit-sigmaboth), 100*(fit+sigmaboth), alpha=0.1, fc='k', hatch='')
-        ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=0.1, fc='k', ec='k', hatch='', label=r'$95\%$')
-        ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw, capsize=cs, capthick=ct)
-        ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigma, color='r', marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
+
+        ax.axvspan( 100*(fit-sigmaboth), 100*(fit+sigmaboth), alpha=0.5, fc=(0.7,0.7,0.7), lw=0.1, hatch='', label=r'$68\%$',zorder=-9)
+        ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=1.0, fc='w', ec='k', lw=0.1, hatch='....', label=r'$95\%$', zorder=-10)
+        ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color=lc, marker='.', markersize=15, mfc='k', mec='k', linewidth=lw, capsize=cs, capthick=ct)
+        ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigma, color=lc, marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
         ax.text(just, [0,1][unfold], r'$\mathsf{CMS,\ template}$', ha='right',fontsize=fs)
         ax.text(just, [0,1][unfold] - 0.2, r'$(\mathsf{0.33percent\pm 0.26percent \pm 0.33percent})ppp$'.replace('percent','').replace('ppp',r'\%'), ha='right', fontsize=11)
 
@@ -75,9 +76,9 @@ class bias_plot(object):
         PH = (tree.scale*100, PHerr)
         KR = (0.0102*100, 0.0005*100)
         BS = (0.0111*100, 0.0004*100)
-        predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],[r'$\mathsf{K\"{u}hn}$ & $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ & $\mathsf{Si}$',r'$\mathsf{POWHEG}$'])
+        predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],[r'$\mathsf{K\"{u}hn}$ $\mathsf{and}$ $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ $\mathsf{and}$ $\mathsf{Si}$',r'$\mathsf{POWHEG}$'])
         for i,((f,s),c,L) in enumerate(predictions):
-            ax.errorbar( f, -1-i, xerr=s, color='r', linewidth=lw, capsize=cs, capthick=ct)
+            ax.errorbar( f, -1-i, xerr=s, color=lc, linewidth=lw, capsize=cs, capthick=ct)
             ax.text(just, -1-i, L, ha='right',fontsize=fs)
 
         names = {'mn':r'$\mathsf{MC@NLO}$'}
@@ -93,7 +94,7 @@ class bias_plot(object):
             cerr.append(v.GetMeanError())
             clab.append(k)
         for i,(g,f,e,l) in enumerate(sorted(zip(cgen,cfit,cerr,clab))):
-            ax.errorbar([g], [-4-order[i]], xerr=PHerr, color='r', linewidth=lw, capsize=cs, capthick=ct )
+            ax.errorbar([g], [-4-order[i]], xerr=PHerr, color=lc, linewidth=lw, capsize=cs, capthick=ct )
             #ax.plot([g], [-4-order[i]], 'ob', color=(0,0,0.85), )
             #ax.arrow(f, -4-order[i], g-f, 0, color=(0,0,0.85), head_length=0.1, head_width=0.2)
             ax.text(just, -4-order[i], names[l[-2:]], ha='right')

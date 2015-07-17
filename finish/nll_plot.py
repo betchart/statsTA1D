@@ -59,7 +59,7 @@ class nll_plot(object):
                      ax.get_xticklabels() + ax.get_yticklabels() + ax2.get_xticklabels() + ax2.get_yticklabels()):
             item.set_fontsize(fs)
         ax2.set_xlabel(r'$A_c^y$ $(\%)$', fontsize=fs+4)
-        ax.set_ylabel(r'$\mathsf{-\log L}$', fontsize=fs+4)
+        ax.set_ylabel(r'$\mathsf{-\log\ L}$', fontsize=fs+4)
         ax.set_xlabel(r'$\mathsf{\alpha}$', fontsize=fs+4)
         ax.tick_params('both', length=10, width=1, which='major')
         ax.tick_params('both', length=5, width=1, which='minor')
@@ -92,24 +92,31 @@ class nll_plot(object):
             y = [eval("%f*x**2 + 2*%f*x + %f"%tuple(tree.parbABC)) for x in t]
             p5 = np.array([0.5]*len(y))
             ax.plot(t, y, linewidth=lw, linestyle='--'[:i+1], color='black')
-            ax.fill_between(t, y, 0.5, where=y<p5, color=(1,1,1), alpha=0.5, hatch='\/'[i], edgecolor='k', linewidth=0.0, linestyle='--'[:i+1])
+            ax.fill_between(t, y, 0.5, where=y<p5, color=(1,1,1), alpha=0.3, hatch='\/'[i], edgecolor='k', linewidth=0.0, linestyle='--'[:i+1], zorder=10)
 
-        ax.plot([0],[100], 'o', linewidth=lw, linestyle='-', color='k', markersize=6, mfc='k', mec='k', mew=lw, label=r'$\mathsf{-\log L}$, $\mathsf{e}$')
-        ax.plot([0],[100], 'o', linewidth=lw, linestyle='--',color='k', markersize=6, mfc='none', mec='k', mew=lw, label=r'$\mathsf{-\log L}$, $\mathsf{\mu}$')
+        ax.plot([0],[100], 'o', linewidth=lw, linestyle='-', color='k', markersize=6, mfc='k', mec='k', mew=lw, label=r'$\mathsf{-\log\ L}$, $\mathsf{e}$')
+        ax.plot([0],[100], 'o', linewidth=lw, linestyle='--',color='k', markersize=6, mfc='none', mec='k', mew=lw, label=r'$\mathsf{-\log\ L}$, $\mathsf{\mu}$')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
-        ax.axvspan( -100, -99, alpha=0.3, fc='k', hatch='', label=r'$\mathsf{(e\oplus\mu)\pm\sigma_{stat}}$')
-        ax.axvspan( (fit-sigma)/tree.scale, (fit+sigma)/tree.scale, alpha=0.2, fc='k', hatch='')
-        ax.axvspan( (fit-sigtot)/tree.scale, (fit+sigtot)/tree.scale, alpha=0.15, fc='k', hatch='', label=r'$\mathsf{(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{syst}}$')
+
+        h68 = ''
+        h90 = '....'
+        
+        ax.axvspan( (fit-sigma)/tree.scale, (fit+sigma)/tree.scale, lw=0.1, fc=(0.7,0.7,0.7), alpha=0.5, hatch=h68, zorder=-9, label=r'$\mathsf{(e\oplus\mu)\pm\sigma_{stat}}$')
+        ax.axvspan( (fit-sigtot)/tree.scale, (fit+sigtot)/tree.scale, fc='none', hatch=h90, lw=0.1, label=r'$\mathsf{(e\oplus\mu)\pm\sigma_{stat}\pm\sigma_{syst}}$', zorder=-10)
 
         PH = (1, 0.0009/tree.scale)
         KR = (0.0102/tree.scale, 0.0005/tree.scale)
         BS = (0.0111/tree.scale, 0.0004/tree.scale)
         bogus = (100, 0.1)
-        predictions = zip([PH, bogus, KR, BS],['\\//','\\//','',''],['k','k',(0.75,0,0),(0.5,0,0)],['','POWHEG',r'$\mathsf{K\"uhn}$ & $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ & $\mathsf{Si}$'])
-        for (f,s),h,c,L in predictions:
-            ax.axvspan( f-s, f+s, alpha=(1 if h else 0.6), hatch=h, fc=('w' if f==100 else "none" if h else c), ec=c, label=L)
 
+        lc = (0.9,0.1,0.1)
+
+        ax.axvspan( PH[0]-PH[1], PH[0]+PH[1], alpha=1.0, hatch='xx', fc='none', ec=(0,0,0), lw=0.1, label="", zorder=-8)
+        ax.axvspan( 100, 101, alpha=1.0, hatch='xx', fc='white', ec=(0,0,0), lw=0.1, label="POWHEG")
+        ax.axvspan( KR[0]-KR[1], KR[0]+KR[1], alpha=0.3, hatch='x', fc = lc, lw=0.1, ec='w', label = r'$\mathsf{K\"uhn}$ $\mathsf{and}$ $\mathsf{Rodrigo}$')
+        ax.axvspan( BS[0]-BS[1], BS[0]+BS[1], alpha=1.0, hatch='XXXX', fc = lc, ec = 'w', lw=0.1, label = r'$\mathsf{Bernreuther}$ $\mathsf{and}$ $\mathsf{Si}$')
+        
         ax.text(-2.9, 1.85, "CMS", fontsize=20, weight='heavy')
         ax.text(-2.9, 1.75, "19.6 $\mathsf{fb}^{-1}$ (8 TeV)", fontsize=15)
 

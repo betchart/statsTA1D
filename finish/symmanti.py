@@ -6,7 +6,9 @@ r.gROOT.SetBatch(True)
 
 r.gROOT.ProcessLine(".L lib/tdrstyle.C")
 r.setTDRStyle()
-r.tdrStyle.SetErrorX(0.5);
+r.TGaxis.SetMaxDigits(3)
+r.tdrStyle.SetPadTopMargin(0.055)
+r.tdrStyle.SetPadLeftMargin(0.15)
 
 Xl = "#varUpsilon_{#kern[-0.1]{#lower[-0.3]{t#bar{t}}}}"
 labels = {'tt':"pp #rightarrow t#bar{t}",
@@ -28,7 +30,7 @@ def dostamp():
     stamp.DrawTextNDC(0.2 ,0.88,"POWHEG CT10")
     stamp.SetTextSize(0.8 * ssize)
     stamp.SetTextFont(42)
-    stamp.DrawTextNDC(0.82, 0.96, "(8TeV pp)")
+    stamp.DrawTextNDC(0.81, 0.96, "(8 TeV pp)")
 
 
 class symmanti(object):
@@ -46,8 +48,11 @@ class symmanti(object):
             h = tFile.Get(dName + '/' + key)
             h.UseCurrentStyle()
             h.Rebin(2)
-            h.SetTitle(';%s;(1/#sigma)(#partial#sigma/#partial%s)'%(Xl,Xl))
-            h.Scale(1./h.Integral(),'width')
+            #h.SetTitle(';%s;(1/#sigma)(d#sigma/d%s)'%(Xl,Xl))
+            h.SetTitle(';%s;Probability / %.2f'%(Xl,h.GetBinWidth(1)))
+            h.GetYaxis().SetTitleOffset(1)
+            #h.Scale(1./h.Integral(),'width')
+            h.Scale(1./h.Integral())
             col,width,style = props[key]
             h.SetLineColor(col)
             h.SetLineWidth(width)
@@ -82,7 +87,7 @@ class symmanti(object):
 
 outNames = ['output/symmAnti.pdf','output/symmAntiAlt.pdf','output/symmAntiCalib.pdf']
 props_s = [#{'tt':(r.kBlack, 3,r.kSolid), 'ttqq':(r.kRed,1,r.kSolid), 'ttgg':(r.kBlue,1,r.kSolid), 'ttqg':(r.kViolet,1,r.kSolid), 'ttag':(r.kViolet,1,r.kDashed)},
-           {'ttqq':(r.kRed,3,r.kSolid), 'ttgg':(r.kBlack,1,r.kSolid), 'ttqg':(r.kBlue,3,7), 'ttag':(r.kBlue,1,r.kDashed)},
+           {'ttqq':(r.kRed,4,r.kSolid), 'ttgg':(r.kBlack,1,r.kSolid), 'ttqg':(r.kBlue,3,7), 'ttag':(r.kBlue,1,r.kDashed)},
            {'tt':(r.kBlack, 3,r.kSolid), 'calib_mg.pu.sf':(r.kRed, 2, r.kSolid), 'calib_mn.pu.sf':(r.kBlue, 2, r.kSolid)},
            {'tt':(r.kBlack, 3,r.kSolid),
             'calib_R200.pu.sf':(r.kRed, 2, r.kSolid),
