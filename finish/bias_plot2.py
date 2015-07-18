@@ -53,7 +53,7 @@ class bias_plot(object):
             gen.append(float(k[5:])*e.scale*100)
             fit.append(v.GetMean())
             err.append(v.GetMeanError())
-        ax.errorbar(gen,fit-np.array(gen),yerr=err,fmt='o', color='k', mec=(0,0.9,0), mfc='none', label='Extended POWHEG', mew=1)
+        ax.errorbar(gen,fit-np.array(gen),yerr=err,fmt='o', color='k', mec=(0,0.9,0), mfc='none', label='Extended POWHEG', mew=1, capsize=0)
 
         bookC = autoBook('C')
         for e,m in izip(*treesC):
@@ -95,10 +95,10 @@ class bias_plot(object):
         canvas.Print(fitfile+']')
 
         #ax.errorbar(cgen,cfit-np.array(cgen),yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathsf{t\bar{t}}$ models')
-        ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='_', color=(0,0,0.85), mec='k')
-        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'200$\mathsf{\,GeV}$ axigluon models')
-        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'2$\mathsf{\,TeV}$ axigluon models')
-        ax.errorbar(np.array(cgen)[iSM],(cfit-np.array(cgen))[iSM],yerr=np.array(cerr)[iSM],fmt='.', color=(0,0,0.85), mec='k', label=r'Standard model simulations ')
+        ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='_', color=(0,0,0.85), mec='k', capsize=0)
+        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'200$\mathsf{\,GeV}$ axigluon models', capsize=0)
+        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'2$\mathsf{\,TeV}$ axigluon models', capsize=0)
+        ax.errorbar(np.array(cgen)[iSM],(cfit-np.array(cgen))[iSM],yerr=np.array(cerr)[iSM],fmt='.', color=(0,0,0.85), mec='k', label=r'Standard model simulations ', capsize=0)
 
         for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
             print k, g, f, e
