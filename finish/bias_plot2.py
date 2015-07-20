@@ -53,7 +53,7 @@ class bias_plot(object):
             gen.append(float(k[5:])*e.scale*100)
             fit.append(v.GetMean())
             err.append(v.GetMeanError())
-        ax.errorbar(gen,fit-np.array(gen),yerr=err,fmt='o', color='k', mec=(0,0.9,0), mfc='none', label='Extended POWHEG', mew=1, capsize=0)
+        ax.errorbar(gen,fit-np.array(gen),yerr=err,fmt='o', color='k', mec=(0,0.9,0), mfc='none', label='Extended POWHEG', mew=1, capsize=0, ms=7)
 
         bookC = autoBook('C')
         for e,m in izip(*treesC):
@@ -95,9 +95,9 @@ class bias_plot(object):
         canvas.Print(fitfile+']')
 
         #ax.errorbar(cgen,cfit-np.array(cgen),yerr=cerr,fmt='.', color=(0,0,0.85), mec='k', label=r'Alternative $\mathsf{t\bar{t}}$ models')
-        ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='_', color=(0,0,0.85), mec='k', capsize=0)
-        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'200$\mathsf{\,GeV}$ axigluon models', capsize=0)
-        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'2$\mathsf{\,TeV}$ axigluon models', capsize=0)
+        ax.errorbar(np.array(cgen)[iOther],(cfit-np.array(cgen))[iOther],yerr=np.array(cerr)[iOther],fmt='s', color=(0,0,0.85), mec='k', capsize=0, label=r"$\mathrm{Z}'$  model", ms=5)
+        ax.errorbar(np.array(cgen)[iLow],(cfit-np.array(cgen))[iLow],yerr=np.array(cerr)[iLow],fmt='^', color=(0,0,0.85), mec='b', mfc='none',label=r'200$\mathsf{\,GeV}$ axigluon models', capsize=0, ms=8)
+        ax.errorbar(np.array(cgen)[iHi],(cfit-np.array(cgen))[iHi],yerr=np.array(cerr)[iHi],fmt='v', color=(0,0,0.85), mec='k', label=r'2$\mathsf{\,TeV}$ axigluon models', capsize=0, ms=6)
         ax.errorbar(np.array(cgen)[iSM],(cfit-np.array(cgen))[iSM],yerr=np.array(cerr)[iSM],fmt='.', color=(0,0,0.85), mec='k', label=r'Standard model simulations ', capsize=0)
 
         for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
@@ -110,14 +110,22 @@ class bias_plot(object):
 
         sys = {'mcstat':0.153, 'modeling': 0.017, 'pdf': 0.018, 'scale': 0.136}
         sys_th = math.sqrt(sum(s*s for s in sys.values()))
-        ax.axhspan( -sys_th, sys_th, alpha=0.4, fc='white', hatch='//', edgecolor='k', label=r'Modeling syst. uncertainties')
+        ax.axhspan( -sys_th, sys_th, alpha=0.4, fc='white', hatch='//', edgecolor='k', label=r'Modeling systematic uncertainties')
 
 
-        ax.legend(loc='lower left', prop={'size':13}, numpoints=1).draw_frame(False)
+        handles_, labels_ = [],[]
+        handles, labels = ax.get_legend_handles_labels()
+        for frag in ['Ext','Stand','GeV','TeV','Z','Mod']:
+            i = next(i for i,j in enumerate(labels) if frag in j)
+            handles_.append(handles[i])
+            labels_.append(labels[i])
+        ax.legend(handles_, labels_, loc = 'lower left', prop={'size':13}, numpoints=1).draw_frame(False)
+        
+        #ax.legend(loc='lower left', prop={'size':13}, numpoints=1).draw_frame(False)
 
         labelsfonts = {'fontsize':13}
         ax.text(-0.4, 0.15, 'MadGraph', labelsfonts, ha='right')
-        ax.text(0.15, 0.4, r"$Z'$", labelsfonts, ha='right')
+        #ax.text(0.15, 0.4, r"$Z'$", labelsfonts, ha='right')
         #ax.annotate('right', xy=(0.479041039944,0.418250670293), xytext=(0.4,0.1), arrowprops={'fc':'k', 'width':0.05, 'shrink':0.2, 'headwidth':2}, fontsize=8)
         ax.text(0.4, -0.19, 'MC@NLO', labelsfonts, ha='right')
         #ax.text(0.65, 0.45, 'RIGHT', labelsfonts)
