@@ -127,11 +127,12 @@ class ensemble1D(object):
             total.Add(m)
             m.Fit('gaus','QEML')
             c.Print(outName)
-        r.gStyle.SetOptFit(10001)
+        r.gStyle.SetOptFit(0)
+        #r.gStyle.SetOptFit(10001)
         #r.gStyle.SetStatBorderSize(0)
-        r.gStyle.SetStatFont(42)
-        r.gStyle.SetStatX(0.85)
-        r.gStyle.SetStatY(0.9)
+        #r.gStyle.SetStatFont(42)
+        #r.gStyle.SetStatX(0.85)
+        #r.gStyle.SetStatY(0.9)
         total.Fit('gaus','QEML')
         
         if self.datatrees:
