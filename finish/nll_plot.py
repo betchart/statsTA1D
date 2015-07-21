@@ -94,8 +94,8 @@ class nll_plot(object):
             ax.plot(t, y, linewidth=lw, linestyle='--'[:i+1], color='black')
             ax.fill_between(t, y, 0.5, where=y<p5, color=(1,1,1), alpha=0.3, hatch='\/'[i], edgecolor='k', linewidth=0.0, linestyle='--'[:i+1], zorder=10)
 
-        ax.plot([0],[100], 'o', linewidth=lw, linestyle='-', color='k', markersize=6, mfc='k', mec='k', mew=lw, label=r'$\mathsf{-\log\ L}$, $\mathsf{e}$')
-        ax.plot([0],[100], 'o', linewidth=lw, linestyle='--',color='k', markersize=6, mfc='none', mec='k', mew=lw, label=r'$\mathsf{-\log\ L}$, $\mathsf{\mu}$')
+        ax.plot([0],[100], 'o', linewidth=lw, linestyle='-', color='k', markersize=6, mfc='k', mec='k', mew=lw, label=r'$\mathsf{-\log\ L}$  $(\mathsf{e})$')
+        ax.plot([0],[100], 'o', linewidth=lw, linestyle='--',color='k', markersize=6, mfc='none', mec='k', mew=lw, label=r'$\mathsf{-\log\ L}$  $(\mathsf{\mu})$')
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
 
