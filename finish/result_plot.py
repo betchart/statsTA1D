@@ -31,8 +31,8 @@ class bias_plot(object):
         ax.set_xlim(-2,2)
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
-            item.set_fontsize(fs)
-        ax.set_xlabel(r'$A_c^y$ $(\%)$', fontsize=fs+4)
+            item.set_fontsize(fs+0.5*fsinc)
+        ax.set_xlabel(r'$A_c^y$ $(\%)$', fontsize=fs+4+0.5*fsinc)
         #ax.set_xlabel(r'$A_c^y (\%)$ : Calculated', fontsize=fs)
         #ax.set_aspect('equal')
         ax.get_yaxis().set_visible(False)
