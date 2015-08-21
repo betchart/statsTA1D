@@ -7,6 +7,7 @@ import ROOT as r
 import math
 
 unfold = True
+presentation = False
 
 import matplotlib
 class bias_plot(object):
@@ -15,8 +16,11 @@ class bias_plot(object):
         from matplotlib.backends.backend_pdf import PdfPages
         from matplotlib.ticker import MultipleLocator
 
-        just = -0.8
+        xoff = 0.08 if presentation else 0
+        
+        just = -0.8 + xoff
 
+        fsinc = 4 if presentation else 0
         fs = 14
         lw = 1.3
         cs = 4
@@ -58,8 +62,8 @@ class bias_plot(object):
             unfold_syst = 0.37
             ax.errorbar( unfold_mean, 0, xerr=math.sqrt(unfold_stat**2+unfold_syst**2), marker='.', markersize=15, mfc='k', mec='k', color=lc, linewidth=lw, capsize=cs, capthick=ct )
             ax.errorbar( unfold_mean, 0, xerr=unfold_stat, color=lc, marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-            ax.text(just, 0, r'$\mathsf{CMS,\ unfold}$', ha='right', fontsize=fs)
-            ax.text(just, 0 - 0.2, ('($\mathsf{%.2fpercent\pm %.2fpercent \pm %.2fpercent})ppp$'%(unfold_mean,unfold_stat,unfold_syst)).replace('percent','').replace('ppp', r'\%'), ha='right', fontsize=11)
+            ax.text(just, 0, r'$\mathsf{CMS,\ unfold}$', ha='right', fontsize=fs+fsinc)
+            ax.text(just, 0 - 0.2, ('($\mathsf{%.2fpercent\pm %.2fpercent \pm %.2fpercent})ppp$'%(unfold_mean,unfold_stat,unfold_syst)).replace('percent','').replace('ppp', r'\%'), ha='right', fontsize=11+0.75*fsinc)
 
         fit,sigma = lib.combined_result([(tree.fit,tree.sigma) for tree in trees])
         print fit,sigma
@@ -69,17 +73,18 @@ class bias_plot(object):
         ax.axvspan( 100*(fit-2*sigmaboth), 100*(fit+2*sigmaboth), alpha=1.0, fc='w', ec='k', lw=0.1, hatch='....', label=r'$95\%$', zorder=-10)
         ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigmaboth, color=lc, marker='.', markersize=15, mfc='k', mec='k', linewidth=lw, capsize=cs, capthick=ct)
         ax.errorbar( 100*fit, [0,1][unfold], xerr=100*sigma, color=lc, marker='.', markersize=15, mfc='k', mec='k', linewidth=lw)
-        ax.text(just, [0,1][unfold], r'$\mathsf{CMS,\ template}$', ha='right',fontsize=fs)
-        ax.text(just, [0,1][unfold] - 0.2, r'$(\mathsf{0.33percent\pm 0.26percent \pm 0.33percent})ppp$'.replace('percent','').replace('ppp',r'\%'), ha='right', fontsize=11)
+        ax.text(just, [0,1][unfold], r'$\mathsf{CMS,\ template}$', ha='right',fontsize=fs+fsinc)
+        ax.text(just, [0,1][unfold] - 0.2, r'$(\mathsf{0.33percent\pm 0.26percent \pm 0.33percent})ppp$'.replace('percent','').replace('ppp',r'\%'), ha='right', fontsize=11+0.75*fsinc)
 
         PHerr = 0.0009*100
         PH = (tree.scale*100, PHerr)
         KR = (0.0102*100, 0.0005*100)
         BS = (0.0111*100, 0.0004*100)
-        predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],[r'$\mathsf{K\"{u}hn}$ $\mathsf{and}$ $\mathsf{Rodrigo}$',r'$\mathsf{Bernreuther}$ $\mathsf{and}$ $\mathsf{Si}$',r'$\mathsf{POWHEG}$'])
+        andstr = "&" if presentation else "and"
+        predictions = zip([KR, BS, PH],[(0.75,0,0),(0.5,0,0),(0.2,0.8,0)],[r'$\mathsf{K\"{u}hn}$ $\mathsf{%s}$ $\mathsf{Rodrigo}$'%andstr,r'$\mathsf{Bernreuther}$ $\mathsf{%s}$ $\mathsf{Si}$'%andstr,r'$\mathsf{POWHEG}$'])
         for i,((f,s),c,L) in enumerate(predictions):
             ax.errorbar( f, -1-i, xerr=s, color=lc, linewidth=lw, capsize=cs, capthick=ct)
-            ax.text(just, -1-i, L, ha='right',fontsize=fs)
+            ax.text(just, -1-i, L, ha='right',fontsize=fs+fsinc)
 
         names = {'mn':r'$\mathsf{MC@NLO}$'}
         order = [0]
@@ -97,16 +102,16 @@ class bias_plot(object):
             ax.errorbar([g], [-4-order[i]], xerr=PHerr, color=lc, linewidth=lw, capsize=cs, capthick=ct )
             #ax.plot([g], [-4-order[i]], 'ob', color=(0,0,0.85), )
             #ax.arrow(f, -4-order[i], g-f, 0, color=(0,0,0.85), head_length=0.1, head_width=0.2)
-            ax.text(just, -4-order[i], names[l[-2:]], ha='right')
+            ax.text(just, -4-order[i], names[l[-2:]], ha='right', fontsize=fs+fsinc)
         for k,g,f,e in sorted(zip(clab,cgen,cfit,cerr), key=lambda x: x[1]):
             print k, g, f, e
 
 
-        ax.legend(loc='upper right', prop={'size':fs}, title='Confidence').draw_frame(False)
+        ax.legend(loc='upper right', prop={'size':fs+0.4*fsinc}, title='Confidence').draw_frame(False)
 
         plt.subplots_adjust(top=0.95,right=0.95,left=0.05)
 
-        outName = 'output/result_plot.pdf'
+        outName = 'output/result_plot%s.pdf'%("_presentation" if presentation else "")
         pp = PdfPages(outName)
         pp.savefig(fig)
         pp.close()
