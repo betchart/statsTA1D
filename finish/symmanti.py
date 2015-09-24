@@ -46,6 +46,9 @@ class symmanti(object):
         leg.SetTextFont(42)
         for key in (propOrder if propOrder else props):
             h = tFile.Get(dName + '/' + key)
+            N = h.GetEntries()
+            asymm = lib.asymmetry(h)
+            print key, N, asymm
             h.UseCurrentStyle()
             h.Rebin(2)
             #h.SetTitle(';%s;(1/#sigma)(d#sigma/d%s)'%(Xl,Xl))
